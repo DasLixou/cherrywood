@@ -1,12 +1,14 @@
-use cherrywood_widgets::button::Button;
+use cherrywood::{button::Button, container::Container};
+
+struct Greeting(String);
 
 fn main() {
-    println!("Hello, world!");
-    let mut button = Button::new().on_click(greet);
-    button.click();
-    button.click();
+    let button = Button::new().on_click(greet);
+    let mut container = Container::new(button, Greeting("hello hello :D".to_string()));
+    container.click();
+    container.click();
 }
 
-fn greet() {
-    println!("hello 👋");
+fn greet(greeting: &Greeting) {
+    println!("{}", greeting.0);
 }

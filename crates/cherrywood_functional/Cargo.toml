@@ -1,6 +1,0 @@
-[package]
-name = "cherrywood_functional"
-version = "0.1.0"
-edition = "2021"
-
-[dependencies]
