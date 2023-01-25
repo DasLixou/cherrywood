@@ -1,0 +1,13 @@
+[workspace]
+members = [
+  "crates/*",
+]
+
+[package]
+name = "cherrywood"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+cherrywood_functional = { path = "crates/cherrywood_functional" }
+cherrywood_widgets = { path = "crates/cherrywood_widgets" }
