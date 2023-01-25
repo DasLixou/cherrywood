@@ -1,19 +1,52 @@
-pub trait System<In> {
-    fn run(&mut self, input: &In);
+use bevy_ptr::OwningPtr;
+
+// PHANTOM is used for working generic impls like `impl<F, In> System<In> for F where F: FnMut(&In)`
+pub trait System<PHANTOM = ()> {
+    fn run(&mut self);
+
+    fn into_described(self) -> DescribedSystem;
 }
 
-impl System<()> for () {
-    fn run(&mut self, _input: &()) {}
+impl System for () {
+    fn run(&mut self) {}
+
+    fn into_described(self) -> DescribedSystem {
+        OwningPtr::make(self, |ptr| DescribedSystem {
+            system: ptr.as_ptr(),
+        })
+    }
 }
 
-impl<F, In> System<In> for F
-where
-    F: FnMut(&In),
-{
-    fn run(&mut self, input: &In) {
-        fn call_inner<In>(mut f: impl FnMut(&In), input: &In) {
-            f(input);
+macro_rules! impl_system_trait {
+    ($($param: ident),*) => {
+        impl<Func, $($param),*> System<($($param),*)> for Func
+        where
+            Func: FnMut($($param),*),
+        {
+            fn run(&mut self) {
+                fn call_inner(mut f: impl FnMut($($param),*)) {
+                    f();
+                }
+                call_inner(self)
+            }
+
+            fn into_described(self) -> DescribedSystem {
+                OwningPtr::make(self, |ptr| DescribedSystem {
+                    system: ptr.as_ptr(),
+                })
+            }
         }
-        call_inner(self, input)
+    };
+}
+
+impl_system_trait!();
+
+pub struct DescribedSystem {
+    system: *const u8,
+}
+
+impl DescribedSystem {
+    pub fn run(&mut self) {
+        todo!()
     }
 }

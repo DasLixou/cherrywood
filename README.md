@@ -1,6 +1,6 @@
 # Cherrywood
 
-An experimental UI Framework for Rust with inspiration from [`bevy`](https://github.com/linebender/druid) and [`druid`](https://github.com/bevyengine/bevy)
+An experimental UI Framework for Rust with inspiration from [`bevy`](https://github.com/bevyengine/bevy) and [`druid`](https://github.com/linebender/druid)
 
 ## License
 

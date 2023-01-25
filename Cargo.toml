@@ -9,3 +9,5 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+bevy_ptr = "0.9.1"
+hashbrown = "0.13.2"
