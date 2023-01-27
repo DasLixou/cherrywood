@@ -1,3 +1,4 @@
+use crate::access::Access;
 use crate::container::Container;
 use crate::system::SystemParamFunction;
 use crate::system_param::SystemParam;
@@ -6,6 +7,12 @@ macro_rules! impl_system_param_fn {
     ($($param: ident),*) => {
         impl<$($param: SystemParam),*> SystemParam for ($($param),*,) {
             type Param<'c> = ($($param::Param<'c>),*,);
+
+            fn initialize(access: &mut Access) {
+                $(
+                    <$param as SystemParam>::initialize(access);
+                )*
+            }
 
             fn get_param<'c>(container: &'c Container) -> Self::Param<'c> {
                 ($(

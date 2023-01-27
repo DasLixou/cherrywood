@@ -12,6 +12,6 @@ fn main() {
     }
 }
 
-fn greet(greeting: Res<Greeting>) {
+fn greet(greeting: Res<Greeting>, _another_greeting: Res<Greeting>) {
     println!("{}", greeting.0);
 }
