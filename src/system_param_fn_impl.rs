@@ -18,10 +18,12 @@ macro_rules! impl_system_param_fn {
         where
             F: Fn($($param),*) -> () + 'static,
         {
-            fn run(&mut self) {
+            fn run(&mut self, container: &mut Container) {
+                let _params = <($($param),*,) as SystemParam>::get_param(container);
                 eprintln!("totally calling a function here");
             }
         }
     };
 }
 impl_system_param_fn!(P1);
+impl_system_param_fn!(P1, P2);

@@ -4,11 +4,12 @@ struct Greeting(String);
 impl Resource for Greeting {}
 
 fn main() {
-    let button = Button::new().on_click(greet);
-    let mut container = Container::new(button);
+    let mut button = Button::new().on_click(greet);
+    let mut container = Container::new();
     container.insert_resource(Greeting("hello hello :D".to_string()));
-    container.click();
-    container.click();
+    if let Some(f) = &mut button.on_click {
+        f.run(&mut container);
+    }
 }
 
 fn greet(greeting: Res<Greeting>) {

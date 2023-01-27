@@ -4,7 +4,7 @@ use crate::{
 };
 
 pub struct Button {
-    pub(crate) on_click: Option<BoxedDescribedSystem>,
+    pub on_click: Option<BoxedDescribedSystem>,
 }
 
 impl Button {

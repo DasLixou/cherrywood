@@ -1,14 +1,12 @@
-use crate::{button::Button, resource::Resource, resources::Resources};
+use crate::{resource::Resource, resources::Resources};
 
 pub struct Container {
-    main: Button,
     pub(crate) resources: Resources,
 }
 
 impl Container {
-    pub fn new(main: Button) -> Self {
+    pub fn new() -> Self {
         Self {
-            main,
             resources: Resources::new(),
         }
     }
@@ -21,11 +19,5 @@ impl Container {
         self.resources
             .get_resource::<R>()
             .map(|raw| unsafe { &*raw.cast::<R>() })
-    }
-
-    pub fn click(&mut self) {
-        if let Some(on_click) = &mut self.main.on_click {
-            on_click.run();
-        }
     }
 }

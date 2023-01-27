@@ -1,6 +1,6 @@
 use std::marker::PhantomData;
 
-use crate::system_param::SystemParam;
+use crate::{container::Container, system_param::SystemParam};
 
 pub trait IntoDescribedSystem<Params> {
     type System: DescribedSystem + 'static;
@@ -9,7 +9,7 @@ pub trait IntoDescribedSystem<Params> {
 }
 
 pub trait DescribedSystem {
-    fn run(&mut self);
+    fn run(&mut self, container: &mut Container);
 }
 
 pub type BoxedDescribedSystem = Box<dyn DescribedSystem>;
@@ -37,11 +37,11 @@ impl<F, Params: SystemParam> DescribedSystem for FunctionSystem<F, Params>
 where
     F: SystemParamFunction<Params> + 'static,
 {
-    fn run(&mut self) {
-        SystemParamFunction::run(&mut self.system)
+    fn run(&mut self, container: &mut Container) {
+        SystemParamFunction::run(&mut self.system, container)
     }
 }
 
 pub(crate) trait SystemParamFunction<Params: SystemParam>: 'static {
-    fn run(&mut self);
+    fn run(&mut self, container: &mut Container);
 }
