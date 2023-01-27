@@ -17,6 +17,10 @@ impl Container {
         self.resources.insert_resource(value);
     }
 
+    pub fn get_resource<R: Resource + 'static>(&self) -> Option<&R> {
+        self.resources.get_resource()
+    }
+
     pub fn click(&mut self) {
         self.main.on_click.run();
     }

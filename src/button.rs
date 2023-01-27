@@ -1,4 +1,4 @@
-use crate::system::{DescribedSystem, System};
+use crate::system::{DescribedSystem, IntoDescribedSystem};
 
 pub struct Button {
     pub(crate) on_click: DescribedSystem,
@@ -11,7 +11,7 @@ impl Button {
         }
     }
 
-    pub fn on_click(mut self, callback: impl System) -> Self {
+    pub fn on_click(mut self, callback: impl IntoDescribedSystem) -> Self {
         self.on_click = callback.into_described();
         self
     }
