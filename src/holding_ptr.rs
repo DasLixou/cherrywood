@@ -5,6 +5,7 @@ pub struct HoldingPtr(NonNull<u8>, Layout);
 impl HoldingPtr {
     pub fn new<V>(val: V) -> Self {
         let layout = Layout::new::<V>();
+        assert!(layout.size() > 0);
         let ptr = unsafe { std::alloc::alloc(layout) };
         unsafe {
             std::ptr::write(ptr as *mut V, val);
