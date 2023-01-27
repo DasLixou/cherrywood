@@ -1,5 +1,5 @@
 use crate::{
-    system::{BoxedDescribedSystem, IntoDescribedSystem},
+    system::{BoxedDescribedSystem, DescribedSystem, IntoDescribedSystem},
     system_param::SystemParam,
 };
 
@@ -16,7 +16,9 @@ impl Button {
         mut self,
         callback: F,
     ) -> Self {
-        self.on_click = Some(Box::new(callback.into_described()));
+        let mut system = Box::new(callback.into_described());
+        system.initialize();
+        self.on_click = Some(system);
         self
     }
 }

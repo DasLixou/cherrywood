@@ -6,7 +6,7 @@ use hashbrown::HashMap;
 use crate::resource::Resource;
 
 pub struct Resources {
-    data: HashMap<TypeId, *const u8>,
+    data: HashMap<TypeId, *mut u8>,
 }
 
 impl Resources {
@@ -22,7 +22,7 @@ impl Resources {
         });
     }
 
-    pub fn get_resource<R: Resource + 'static>(&self) -> Option<&*const u8> {
+    pub fn get<R: Resource + 'static>(&self) -> Option<&*mut u8> {
         self.data.get(&TypeId::of::<R>())
     }
 }

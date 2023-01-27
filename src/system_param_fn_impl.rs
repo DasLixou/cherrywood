@@ -14,9 +14,12 @@ macro_rules! impl_system_param_fn {
                 )*
             }
 
-            fn get_param<'c>(container: &'c Container) -> Self::Param<'c> {
+            fn get_param<'c>(container: &'c mut Container) -> Self::Param<'c> {
                 ($(
-                    <$param as SystemParam>::get_param(container)
+                    <$param as SystemParam>::get_param(unsafe {
+                        // SAFETY: we already checked for conflicts in `initialize`
+                        &mut *((&mut *container) as *mut Container)
+                    })
                 ),*,)
             }
         }
@@ -25,6 +28,13 @@ macro_rules! impl_system_param_fn {
         where
             F: Fn($($param),*) -> () + 'static,
         {
+            fn initialize(access: &mut Access)
+            where
+                Self: Sized
+            {
+                <($($param),*,) as SystemParam>::initialize(access);
+            }
+
             fn run(&mut self, container: &mut Container) {
                 let _params = <($($param),*,) as SystemParam>::get_param(container);
                 eprintln!("totally calling a function here");
