@@ -1,12 +1,11 @@
 use std::any::TypeId;
 
-use bevy_ptr::OwningPtr;
 use hashbrown::HashMap;
 
-use crate::resource::Resource;
+use crate::{holding_ptr::HoldingPtr, resource::Resource};
 
 pub struct Resources {
-    data: HashMap<TypeId, *mut u8>,
+    data: HashMap<TypeId, HoldingPtr>,
 }
 
 impl Resources {
@@ -17,12 +16,10 @@ impl Resources {
     }
 
     pub fn insert_resource<R: Resource + 'static>(&mut self, value: R) {
-        OwningPtr::make(value, |ptr| {
-            self.data.insert(TypeId::of::<R>(), ptr.as_ptr())
-        });
+        self.data.insert(TypeId::of::<R>(), HoldingPtr::new(value));
     }
 
-    pub fn get<R: Resource + 'static>(&self) -> Option<&*mut u8> {
-        self.data.get(&TypeId::of::<R>())
+    pub fn get<R: Resource + 'static>(&self) -> Option<*mut u8> {
+        self.data.get(&TypeId::of::<R>()).map(|ptr| ptr.as_ptr())
     }
 }
