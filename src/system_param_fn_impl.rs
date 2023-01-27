@@ -4,7 +4,7 @@ use crate::system::SystemParamFunction;
 use crate::system_param::SystemParam;
 
 macro_rules! impl_system_param_fn {
-    ($($param: ident),*) => {
+    ($(($param: ident, $index:tt)),*) => {
         impl<$($param: SystemParam),*> SystemParam for ($($param),*,) {
             type Param<'c> = ($($param::Param<'c>),*,);
 
@@ -26,7 +26,7 @@ macro_rules! impl_system_param_fn {
 
         impl<F, $($param: SystemParam),*> SystemParamFunction<($($param),*,)> for F
         where
-            F: Fn($($param),*) -> () + 'static,
+            F: Fn($($param),*) -> () + Fn($($param::Param<'_>),*) -> () + 'static,
         {
             fn initialize(access: &mut Access)
             where
@@ -36,11 +36,13 @@ macro_rules! impl_system_param_fn {
             }
 
             fn run(&mut self, container: &mut Container) {
-                let _params = <($($param),*,) as SystemParam>::get_param(container);
-                eprintln!("totally calling a function here");
+                let params = <($($param),*,) as SystemParam>::get_param(container);
+                self($(
+                    params.$index
+                ),*);
             }
         }
     };
 }
-impl_system_param_fn!(P1);
-impl_system_param_fn!(P1, P2);
+impl_system_param_fn!((A, 0));
+impl_system_param_fn!((A, 0), (B, 1));
