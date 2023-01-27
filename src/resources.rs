@@ -16,7 +16,8 @@ impl Resources {
     }
 
     pub fn insert_resource<R: Resource + 'static>(&mut self, value: R) {
-        self.data.insert(TypeId::of::<R>(), HoldingPtr::new(value));
+        let ptr = HoldingPtr::new(value);
+        self.data.insert(TypeId::of::<R>(), ptr);
     }
 
     pub fn get<R: Resource + 'static>(&self) -> Option<*mut u8> {

@@ -1,23 +1,19 @@
-use std::{alloc::Global, ptr::NonNull};
+use std::{alloc::Layout, ptr::NonNull};
 
-pub struct HoldingPtr(NonNull<u8>, Global);
+pub struct HoldingPtr(NonNull<u8>, Layout);
 
 impl HoldingPtr {
     pub fn new<V>(val: V) -> Self {
-        /*let layout = Layout::new::<V>();
-        let ptr = unsafe {
-            let ptr = std::alloc::alloc(layout);
-            *(ptr as *mut V) = val;
-            // SAFETY: `ptr` was just created, so it can't be null
-            NonNull::new_unchecked(ptr.cast::<u8>())
-        };*/
-        let data = Box::new(val);
-        let (ptr, alloc) = Box::into_raw_with_allocator(data);
+        let layout = Layout::new::<V>();
+        let ptr = unsafe { std::alloc::alloc(layout) };
+        unsafe {
+            std::ptr::write(ptr as *mut V, val);
+        }
         let ptr = unsafe {
             // SAFETY: `ptr` was just created, so it can't be null
             NonNull::new_unchecked(ptr.cast::<u8>())
         };
-        Self(ptr, alloc)
+        Self(ptr, layout)
     }
 
     #[inline]
@@ -28,6 +24,8 @@ impl HoldingPtr {
 
 impl Drop for HoldingPtr {
     fn drop(&mut self) {
-        // TODO
+        unsafe {
+            std::alloc::dealloc(self.0.as_ptr(), self.1);
+        }
     }
 }

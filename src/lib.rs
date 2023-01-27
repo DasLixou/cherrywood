@@ -1,5 +1,3 @@
-#![feature(allocator_api)]
-
 pub mod access;
 pub mod button;
 pub mod container;

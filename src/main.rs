@@ -14,5 +14,5 @@ fn main() {
 }
 
 fn greet(greeting: Res<Greeting>) {
-    println!("{}", greeting.0); // TODO: this crashes :c
+    println!("{}", greeting.0);
 }
