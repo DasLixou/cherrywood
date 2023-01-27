@@ -1,4 +1,4 @@
-use cherrywood::{button::Button, container::Container, resource::Resource};
+use cherrywood::{button::Button, container::Container, resource::Resource, system_param::Res};
 
 struct Greeting(String);
 impl Resource for Greeting {}
@@ -11,7 +11,6 @@ fn main() {
     container.click();
 }
 
-fn greet(/*greeting: &Greeting*/) {
-    // TODO: make params work again
-    //println!("{}", greeting.0);
+fn greet(greeting: Res<Greeting>) {
+    println!("{}", greeting.0);
 }

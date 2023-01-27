@@ -22,9 +22,7 @@ impl Resources {
         });
     }
 
-    pub fn get_resource<R: Resource + 'static>(&self) -> Option<&R> {
-        self.data
-            .get(&TypeId::of::<R>())
-            .map(|raw| unsafe { &*raw.cast::<R>() })
+    pub fn get_resource<R: Resource + 'static>(&self) -> Option<&*const u8> {
+        self.data.get(&TypeId::of::<R>())
     }
 }

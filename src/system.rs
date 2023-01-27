@@ -1,40 +1,47 @@
-use bevy_ptr::OwningPtr;
+use std::marker::PhantomData;
 
-// PHANTOM is used for working generic impls like `impl<F, In> System<In> for F where F: FnMut(&In)`
-pub trait IntoDescribedSystem<PHANTOM = ()> {
-    fn into_described(self) -> DescribedSystem;
+use crate::system_param::SystemParam;
+
+pub trait IntoDescribedSystem<Params> {
+    type System: DescribedSystem + 'static;
+
+    fn into_described(self) -> Self::System;
 }
 
-impl IntoDescribedSystem for () {
-    fn into_described(self) -> DescribedSystem {
-        OwningPtr::make(self, |ptr| DescribedSystem {
-            system: ptr.as_ptr(),
-        })
-    }
+pub trait DescribedSystem {
+    fn run(&mut self);
 }
 
-macro_rules! impl_system_trait {
-    ($($param: ident),*) => {
-        impl<Func, $($param),*> IntoDescribedSystem<($($param),*)> for Func
-        where
-            Func: FnMut($($param),*),
-        {
-            fn into_described(self) -> DescribedSystem {
-                OwningPtr::make(self, |ptr| DescribedSystem {
-                    system: ptr.as_ptr(),
-                })
-            }
+pub type BoxedDescribedSystem = Box<dyn DescribedSystem>;
+
+pub struct FunctionSystem<F, Params> {
+    system: F,
+    phantom: PhantomData<Params>,
+}
+
+impl<F, Params: SystemParam + 'static> IntoDescribedSystem<Params> for F
+where
+    F: SystemParamFunction<Params> + 'static,
+{
+    type System = FunctionSystem<F, Params>;
+
+    fn into_described(self) -> Self::System {
+        FunctionSystem {
+            system: self,
+            phantom: PhantomData,
         }
-    };
-}
-impl_system_trait!();
-
-pub struct DescribedSystem {
-    system: *const u8,
-}
-
-impl DescribedSystem {
-    pub fn run(&mut self) {
-        todo!()
     }
+}
+
+impl<F, Params: SystemParam> DescribedSystem for FunctionSystem<F, Params>
+where
+    F: SystemParamFunction<Params> + 'static,
+{
+    fn run(&mut self) {
+        SystemParamFunction::run(&mut self.system)
+    }
+}
+
+pub(crate) trait SystemParamFunction<Params: SystemParam>: 'static {
+    fn run(&mut self);
 }

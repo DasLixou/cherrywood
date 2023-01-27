@@ -2,7 +2,7 @@ use crate::{button::Button, resource::Resource, resources::Resources};
 
 pub struct Container {
     main: Button,
-    resources: Resources,
+    pub(crate) resources: Resources,
 }
 
 impl Container {
@@ -18,10 +18,14 @@ impl Container {
     }
 
     pub fn get_resource<R: Resource + 'static>(&self) -> Option<&R> {
-        self.resources.get_resource()
+        self.resources
+            .get_resource::<R>()
+            .map(|raw| unsafe { &*raw.cast::<R>() })
     }
 
     pub fn click(&mut self) {
-        self.main.on_click.run();
+        if let Some(on_click) = &mut self.main.on_click {
+            on_click.run();
+        }
     }
 }
