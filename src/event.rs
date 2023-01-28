@@ -1,5 +1,5 @@
 use crate::{
-    container::Container,
+    app::App,
     system::{BoxedDescribedSystem, DescribedSystem, IntoDescribedSystem},
     system_param::SystemParam,
 };
@@ -24,7 +24,7 @@ impl Event {
         self.systems.push(system);
     }
 
-    pub fn run(&mut self, container: &mut Container) {
+    pub fn run(&mut self, container: &mut App) {
         for sys in &mut self.systems {
             sys.run(container);
         }

@@ -1,10 +1,10 @@
 use crate::{resource::Resource, resources::Resources};
 
-pub struct Container {
+pub struct App {
     pub(crate) resources: Resources,
 }
 
-impl Container {
+impl App {
     pub fn new() -> Self {
         Self {
             resources: Resources::new(),

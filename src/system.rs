@@ -1,6 +1,6 @@
 use std::marker::PhantomData;
 
-use crate::{access::Access, container::Container, system_param::SystemParam};
+use crate::{access::Access, app::App, system_param::SystemParam};
 
 pub trait IntoDescribedSystem<Out, Params> {
     type System: DescribedSystem<Out> + 'static;
@@ -11,7 +11,7 @@ pub trait IntoDescribedSystem<Out, Params> {
 pub trait DescribedSystem<Out> {
     fn initialize(&mut self);
 
-    fn run(&mut self, container: &mut Container) -> Out;
+    fn run(&mut self, app: &mut App) -> Out;
 }
 
 pub type BoxedDescribedSystem<Out = ()> = Box<dyn DescribedSystem<Out>>;
@@ -45,8 +45,8 @@ where
         F::initialize(&mut self.access);
     }
 
-    fn run(&mut self, container: &mut Container) -> Out {
-        SystemParamFunction::run(&mut self.system, container)
+    fn run(&mut self, app: &mut App) -> Out {
+        SystemParamFunction::run(&mut self.system, app)
     }
 }
 
@@ -55,5 +55,5 @@ pub(crate) trait SystemParamFunction<Out, Params: SystemParam>: 'static {
     where
         Self: Sized;
 
-    fn run(&mut self, container: &mut Container) -> Out;
+    fn run(&mut self, app: &mut App) -> Out;
 }

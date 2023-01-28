@@ -1,8 +1,8 @@
 use std::hint::black_box;
 
 use cherrywood::{
+    app::App,
     button::Button,
-    container::Container,
     label::Label,
     resource::Resource,
     system_param::{Res, ResMut},
@@ -21,10 +21,10 @@ fn main() {
         format!("Counter: {}", counter.0)
     });
 
-    let mut container = Container::new();
-    container.insert_resource(Counter(0));
+    let mut app = App::new();
+    app.insert_resource(Counter(0));
 
-    button.on_click.run(&mut container);
+    button.on_click.run(&mut app);
 
     black_box(label);
 }

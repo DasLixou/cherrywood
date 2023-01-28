@@ -1,13 +1,13 @@
 use std::ops::{Deref, DerefMut};
 
-use crate::{access::Access, container::Container, resource::Resource};
+use crate::{access::Access, app::App, resource::Resource};
 
 pub trait SystemParam: Sized {
     type Param<'c>: SystemParam;
 
     fn initialize(access: &mut Access);
 
-    fn get_param<'c>(container: &'c mut Container) -> Self::Param<'c>;
+    fn get_param<'c>(app: &'c mut App) -> Self::Param<'c>;
 }
 
 pub struct Res<'r, R: Resource> {
@@ -21,9 +21,9 @@ impl<'r, R: Resource + 'static> SystemParam for Res<'r, R> {
         access.with_read::<R>();
     }
 
-    fn get_param<'c>(container: &'c mut Container) -> Self::Param<'c> {
+    fn get_param<'c>(app: &'c mut App) -> Self::Param<'c> {
         Res {
-            data: container.get_resource::<R>().expect(&format!(
+            data: app.get_resource::<R>().expect(&format!(
                 "Couldn't find resource {}",
                 std::any::type_name::<R>()
             )),
@@ -50,7 +50,7 @@ impl<'r, R: Resource + 'static> SystemParam for ResMut<'r, R> {
         access.with_write::<R>();
     }
 
-    fn get_param<'c>(container: &'c mut Container) -> Self::Param<'c> {
+    fn get_param<'c>(container: &'c mut App) -> Self::Param<'c> {
         ResMut {
             data: container.get_resource_mut::<R>().expect(&format!(
                 "Couldn't find resource {}",
