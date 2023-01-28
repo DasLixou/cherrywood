@@ -3,6 +3,7 @@ pub mod button;
 pub mod container;
 pub mod event;
 pub mod holding_ptr;
+pub mod label;
 pub mod resource;
 pub mod resources;
 pub mod system;

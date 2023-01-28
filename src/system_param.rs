@@ -1,4 +1,4 @@
-use std::ops::Deref;
+use std::ops::{Deref, DerefMut};
 
 use crate::{access::Access, container::Container, resource::Resource};
 
@@ -64,6 +64,12 @@ impl<'r, R: Resource> Deref for ResMut<'r, R> {
     type Target = R;
 
     fn deref(&self) -> &Self::Target {
+        self.data
+    }
+}
+
+impl<'r, R: Resource> DerefMut for ResMut<'r, R> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
         self.data
     }
 }
