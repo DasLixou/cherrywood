@@ -3,6 +3,31 @@ use crate::container::Container;
 use crate::system::SystemParamFunction;
 use crate::system_param::SystemParam;
 
+impl SystemParam for () {
+    type Param<'c> = ();
+
+    fn initialize(_access: &mut Access) {}
+
+    fn get_param<'c>(_container: &'c mut Container) -> Self::Param<'c> {
+        ()
+    }
+}
+
+impl<F> SystemParamFunction<()> for F
+where
+    F: Fn() -> () + 'static,
+{
+    fn initialize(_access: &mut Access)
+    where
+        Self: Sized,
+    {
+    }
+
+    fn run(&mut self, _container: &mut Container) {
+        self();
+    }
+}
+
 macro_rules! impl_system_param_fn {
     ($(($param: ident, $index:tt)),*) => {
         impl<$($param: SystemParam),*> SystemParam for ($($param),*,) {
@@ -24,9 +49,9 @@ macro_rules! impl_system_param_fn {
             }
         }
 
-        impl<F, $($param: SystemParam),*> SystemParamFunction<($($param),*,)> for F
+        impl<Func, $($param: SystemParam),*> SystemParamFunction<($($param),*,)> for Func
         where
-            F: Fn($($param),*) -> () + Fn($($param::Param<'_>),*) -> () + 'static,
+            Func: Fn($($param),*) -> () + Fn($($param::Param<'_>),*) -> () + 'static,
         {
             fn initialize(access: &mut Access)
             where
@@ -46,3 +71,8 @@ macro_rules! impl_system_param_fn {
 }
 impl_system_param_fn!((A, 0));
 impl_system_param_fn!((A, 0), (B, 1));
+impl_system_param_fn!((A, 0), (B, 1), (C, 2));
+impl_system_param_fn!((A, 0), (B, 1), (C, 2), (D, 3));
+impl_system_param_fn!((A, 0), (B, 1), (C, 2), (D, 3), (E, 4));
+impl_system_param_fn!((A, 0), (B, 1), (C, 2), (D, 3), (E, 4), (F, 5));
+impl_system_param_fn!((A, 0), (B, 1), (C, 2), (D, 3), (E, 4), (F, 5), (G, 6));
