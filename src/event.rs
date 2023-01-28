@@ -15,7 +15,10 @@ impl Event {
         }
     }
 
-    pub fn subscribe<F: IntoDescribedSystem<Params>, Params: SystemParam>(&mut self, system: F) {
+    pub fn subscribe<F: IntoDescribedSystem<(), Params>, Params: SystemParam>(
+        &mut self,
+        system: F,
+    ) {
         let mut system = Box::new(system.into_described());
         system.initialize();
         self.systems.push(system);

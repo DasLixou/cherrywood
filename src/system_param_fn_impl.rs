@@ -13,7 +13,7 @@ impl SystemParam for () {
     }
 }
 
-impl<F> SystemParamFunction<()> for F
+impl<F> SystemParamFunction<(), ()> for F
 where
     F: Fn() -> () + 'static,
 {
@@ -23,8 +23,9 @@ where
     {
     }
 
-    fn run(&mut self, _container: &mut Container) {
+    fn run(&mut self, _container: &mut Container) -> () {
         self();
+        ()
     }
 }
 
@@ -49,9 +50,9 @@ macro_rules! impl_system_param_fn {
             }
         }
 
-        impl<Func, $($param: SystemParam),*> SystemParamFunction<($($param),*,)> for Func
+        impl<Func, Out, $($param: SystemParam),*> SystemParamFunction<Out, ($($param),*,)> for Func
         where
-            Func: Fn($($param),*) -> () + Fn($($param::Param<'_>),*) -> () + 'static,
+            Func: Fn($($param),*) -> Out + Fn($($param::Param<'_>),*) -> Out + 'static,
         {
             fn initialize(access: &mut Access)
             where
@@ -60,11 +61,11 @@ macro_rules! impl_system_param_fn {
                 <($($param),*,) as SystemParam>::initialize(access);
             }
 
-            fn run(&mut self, container: &mut Container) {
+            fn run(&mut self, container: &mut Container) -> Out {
                 let params = <($($param),*,) as SystemParam>::get_param(container);
                 self($(
                     params.$index
-                ),*);
+                ),*)
             }
         }
     };

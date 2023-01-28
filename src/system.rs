@@ -2,19 +2,19 @@ use std::marker::PhantomData;
 
 use crate::{access::Access, container::Container, system_param::SystemParam};
 
-pub trait IntoDescribedSystem<Params> {
-    type System: DescribedSystem + 'static;
+pub trait IntoDescribedSystem<Out, Params> {
+    type System: DescribedSystem<Out> + 'static;
 
     fn into_described(self) -> Self::System;
 }
 
-pub trait DescribedSystem {
+pub trait DescribedSystem<Out> {
     fn initialize(&mut self);
 
-    fn run(&mut self, container: &mut Container);
+    fn run(&mut self, container: &mut Container) -> Out;
 }
 
-pub type BoxedDescribedSystem = Box<dyn DescribedSystem>;
+pub type BoxedDescribedSystem<Out = ()> = Box<dyn DescribedSystem<Out>>;
 
 pub struct FunctionSystem<F, Params> {
     system: F,
@@ -22,9 +22,9 @@ pub struct FunctionSystem<F, Params> {
     phantom: PhantomData<Params>,
 }
 
-impl<F, Params: SystemParam + 'static> IntoDescribedSystem<Params> for F
+impl<F, Out, Params: SystemParam + 'static> IntoDescribedSystem<Out, Params> for F
 where
-    F: SystemParamFunction<Params> + 'static,
+    F: SystemParamFunction<Out, Params> + 'static,
 {
     type System = FunctionSystem<F, Params>;
 
@@ -37,23 +37,23 @@ where
     }
 }
 
-impl<F, Params: SystemParam> DescribedSystem for FunctionSystem<F, Params>
+impl<F, Out, Params: SystemParam> DescribedSystem<Out> for FunctionSystem<F, Params>
 where
-    F: SystemParamFunction<Params> + 'static,
+    F: SystemParamFunction<Out, Params> + 'static,
 {
     fn initialize(&mut self) {
         F::initialize(&mut self.access);
     }
 
-    fn run(&mut self, container: &mut Container) {
-        SystemParamFunction::run(&mut self.system, container);
+    fn run(&mut self, container: &mut Container) -> Out {
+        SystemParamFunction::run(&mut self.system, container)
     }
 }
 
-pub(crate) trait SystemParamFunction<Params: SystemParam>: 'static {
+pub(crate) trait SystemParamFunction<Out, Params: SystemParam>: 'static {
     fn initialize(access: &mut Access)
     where
         Self: Sized;
 
-    fn run(&mut self, container: &mut Container);
+    fn run(&mut self, container: &mut Container) -> Out;
 }
