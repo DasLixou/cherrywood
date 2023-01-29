@@ -1,9 +1,14 @@
-use crate::app::App;
+use std::any::Any;
 
-pub trait IntoWidget {
-    type Widget: Widget;
+use slotmap::new_key_type;
 
-    fn into_widget(self, app: &mut App) -> Self::Widget;
+new_key_type! {
+    pub struct WidgetId;
 }
 
-pub trait Widget {}
+pub trait Widget {
+    fn id(&self) -> WidgetId;
+
+    fn as_any(&self) -> &dyn Any;
+    fn as_any_mut(&mut self) -> &mut dyn Any;
+}

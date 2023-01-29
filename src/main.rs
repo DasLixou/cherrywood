@@ -6,27 +6,34 @@ use cherrywood::{
     label::Label,
     resource::Resource,
     system_param::{Res, ResMut},
+    widget::Widget,
 };
 
 struct Counter(i32);
 impl Resource for Counter {}
 
 fn main() {
-    let mut button = Button::new();
+    /*let mut button = Button::new();
     button.on_click.subscribe(increment_counter);
     button.on_click.subscribe(send_request);
 
     let label = Label::new().with_content(|counter: Res<Counter>| {
         println!("Counter changed.");
         format!("Counter: {}", counter.0)
-    });
+    });*/
 
     let mut app = App::new();
     app.insert_resource(Counter(0));
 
-    button.on_click.run(&mut app);
+    /*button.on_click.run(&mut app);
 
-    black_box(label);
+    black_box(label);*/
+}
+
+fn ui(app: &mut App) {
+    let button = Button::new(app);
+    button.on_click.subscribe(increment_counter);
+    button.on_click.subscribe(send_request);
 }
 
 fn increment_counter(mut counter: ResMut<Counter>) {

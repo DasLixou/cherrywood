@@ -1,24 +1,25 @@
 use crate::{
     app::App,
-    event::Event,
     widget::{Widget, WidgetId},
 };
 
-pub struct Button {
-    pub on_click: Event,
+pub struct Stack {
+    pub children: Vec<Box<dyn Widget>>,
     id: WidgetId,
 }
 
-impl Button {
+impl Stack {
     pub fn new(app: &mut App) -> &mut Self {
         app.new_widget(|id| Self {
-            on_click: Event::new(),
+            children: Vec::new(),
             id,
         })
     }
+
+    //pub fn with_children<const N: usize>(f: impl FnOnce(&Widget) -> [])
 }
 
-impl Widget for Button {
+impl Widget for Stack {
     fn id(&self) -> WidgetId {
         self.id
     }
