@@ -1,12 +1,9 @@
-use std::hint::black_box;
-
 use cherrywood::{
     app::App,
     button::Button,
-    label::Label,
     resource::Resource,
-    system_param::{Res, ResMut},
-    widget::Widget,
+    system_param::ResMut,
+    widget::{Widget, WidgetId},
 };
 
 struct Counter(i32);
@@ -22,7 +19,7 @@ fn main() {
         format!("Counter: {}", counter.0)
     });*/
 
-    let mut app = App::new();
+    let mut app = App::new(ui);
     app.insert_resource(Counter(0));
 
     /*button.on_click.run(&mut app);
@@ -30,10 +27,11 @@ fn main() {
     black_box(label);*/
 }
 
-fn ui(app: &mut App) {
+fn ui(app: &mut App) -> WidgetId {
     let button = Button::new(app);
     button.on_click.subscribe(increment_counter);
     button.on_click.subscribe(send_request);
+    button.id()
 }
 
 fn increment_counter(mut counter: ResMut<Counter>) {

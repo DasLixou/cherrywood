@@ -12,11 +12,13 @@ pub struct App {
 }
 
 impl App {
-    pub fn new() -> Self {
-        Self {
+    pub fn new(main: impl FnOnce(&mut App) -> WidgetId) -> Self {
+        let mut app = Self {
             resources: Resources::new(),
             widgets: HopSlotMap::with_key(),
-        }
+        };
+        main(&mut app);
+        app
     }
 
     pub fn insert_resource<R: Resource + 'static>(&mut self, value: R) {
