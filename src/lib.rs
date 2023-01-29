@@ -9,3 +9,4 @@ pub mod resources;
 pub mod system;
 pub mod system_param;
 pub mod system_param_fn_impl;
+pub mod widget;
