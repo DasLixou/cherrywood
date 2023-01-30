@@ -1,28 +1,18 @@
-use crate::{
-    app::App,
-    event::Event,
-    widget::{Widget, WidgetId},
-};
+use crate::{event::Event, widget::Widget};
 
 pub struct Button {
     pub on_click: Event,
-    id: WidgetId,
 }
 
 impl Button {
-    pub fn new(app: &mut App) -> &mut Self {
-        app.new_widget(|id| Self {
+    pub fn new() -> Self {
+        Self {
             on_click: Event::new(),
-            id,
-        })
+        }
     }
 }
 
 impl Widget for Button {
-    fn id(&self) -> WidgetId {
-        self.id
-    }
-
     fn as_any(&self) -> &dyn std::any::Any {
         self
     }

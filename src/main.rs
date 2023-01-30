@@ -1,9 +1,10 @@
 use cherrywood::{
     app::App,
     button::Button,
+    label::Label,
     resource::Resource,
-    system_param::ResMut,
-    widget::{Widget, WidgetId},
+    system_param::{Res, ResMut},
+    widget::Widget,
 };
 
 struct Counter(i32);
@@ -27,11 +28,17 @@ fn main() {
     black_box(label);*/
 }
 
-fn ui(app: &mut App) -> WidgetId {
-    let button = Button::new(app);
+fn ui() -> impl Widget {
+    let mut button = Button::new();
     button.on_click.subscribe(increment_counter);
     button.on_click.subscribe(send_request);
-    button.id()
+
+    let _label = Label::new().with_content(|counter: Res<Counter>| {
+        println!("Counter changed.");
+        format!("Counter: {}", counter.0)
+    });
+
+    button
 }
 
 fn increment_counter(mut counter: ResMut<Counter>) {
