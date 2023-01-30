@@ -3,6 +3,7 @@ use cherrywood::{
     button::Button,
     label::Label,
     resource::Resource,
+    stack::Stack,
     system_param::{Res, ResMut},
     widget::Widget,
 };
@@ -38,7 +39,7 @@ fn ui() -> impl Widget {
         format!("Counter: {}", counter.0)
     });
 
-    button
+    Stack::new().with_children(button)
 }
 
 fn increment_counter(mut counter: ResMut<Counter>) {
