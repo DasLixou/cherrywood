@@ -34,12 +34,12 @@ fn ui() -> impl Widget {
     button.on_click.subscribe(increment_counter);
     button.on_click.subscribe(send_request);
 
-    let _label = Label::new().with_content(|counter: Res<Counter>| {
+    let label = Label::new().with_content(|counter: Res<Counter>| {
         println!("Counter changed.");
         format!("Counter: {}", counter.0)
     });
 
-    Stack::new().with_children(button)
+    Stack::new().with_children((button, label))
 }
 
 fn increment_counter(mut counter: ResMut<Counter>) {

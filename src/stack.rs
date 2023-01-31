@@ -11,7 +11,8 @@ impl Stack {
         }
     }
 
-    pub fn with_children(mut self, children: impl WidgetBatch) -> Self {
+    pub fn with_children<B: WidgetBatch>(mut self, children: B) -> Self {
+        self.children.reserve(B::CAPACITY);
         self.children.extend(children.into_iter());
         self
     }
