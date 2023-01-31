@@ -30,19 +30,19 @@ where
 }
 
 macro_rules! impl_system_param_fn {
-    ($(($param: ident, $index:tt)),*) => {
-        impl<$($param: SystemParam),*> SystemParam for ($($param),*,) {
-            type Param<'c> = ($($param::Param<'c>),*,);
+    ($(($generic:ident, $index:tt))+) => {
+        impl<$($generic: SystemParam),*> SystemParam for ($($generic),*,) {
+            type Param<'c> = ($($generic::Param<'c>),*,);
 
             fn initialize(access: &mut Access) {
                 $(
-                    <$param as SystemParam>::initialize(access);
+                    <$generic as SystemParam>::initialize(access);
                 )*
             }
 
             fn get_param<'c>(app: &'c mut App) -> Self::Param<'c> {
                 ($(
-                    <$param as SystemParam>::get_param(unsafe {
+                    <$generic as SystemParam>::get_param(unsafe {
                         // SAFETY: we already checked for conflicts in `initialize`
                         &mut *((&mut *app) as *mut App)
                     })
@@ -50,19 +50,19 @@ macro_rules! impl_system_param_fn {
             }
         }
 
-        impl<Func, Out, $($param: SystemParam),*> SystemParamFunction<Out, ($($param),*,)> for Func
+        impl<Func, Out, $($generic: SystemParam),*> SystemParamFunction<Out, ($($generic),*,)> for Func
         where
-            Func: Fn($($param),*) -> Out + Fn($($param::Param<'_>),*) -> Out + 'static,
+            Func: Fn($($generic),*) -> Out + Fn($($generic::Param<'_>),*) -> Out + 'static,
         {
             fn initialize(access: &mut Access)
             where
                 Self: Sized
             {
-                <($($param),*,) as SystemParam>::initialize(access);
+                <($($generic),*,) as SystemParam>::initialize(access);
             }
 
             fn run(&mut self, app: &mut App) -> Out {
-                let params = <($($param),*,) as SystemParam>::get_param(app);
+                let params = <($($generic),*,) as SystemParam>::get_param(app);
                 self($(
                     params.$index
                 ),*)
@@ -71,9 +71,12 @@ macro_rules! impl_system_param_fn {
     };
 }
 impl_system_param_fn!((A, 0));
-impl_system_param_fn!((A, 0), (B, 1));
-impl_system_param_fn!((A, 0), (B, 1), (C, 2));
-impl_system_param_fn!((A, 0), (B, 1), (C, 2), (D, 3));
-impl_system_param_fn!((A, 0), (B, 1), (C, 2), (D, 3), (E, 4));
-impl_system_param_fn!((A, 0), (B, 1), (C, 2), (D, 3), (E, 4), (F, 5));
-impl_system_param_fn!((A, 0), (B, 1), (C, 2), (D, 3), (E, 4), (F, 5), (G, 6));
+impl_system_param_fn!((A, 0)(B, 1));
+impl_system_param_fn!((A, 0)(B, 1)(C, 2));
+impl_system_param_fn!((A, 0)(B, 1)(C, 2)(D, 3));
+impl_system_param_fn!((A, 0)(B, 1)(C, 2)(D, 3)(E, 4));
+impl_system_param_fn!((A, 0)(B, 1)(C, 2)(D, 3)(E, 4)(F, 5));
+impl_system_param_fn!((A, 0)(B, 1)(C, 2)(D, 3)(E, 4)(F, 5)(G, 6));
+impl_system_param_fn!((A, 0)(B, 1)(C, 2)(D, 3)(E, 4)(F, 5)(G, 6)(H, 7));
+impl_system_param_fn!((A, 0)(B, 1)(C, 2)(D, 3)(E, 4)(F, 5)(G, 6)(H, 7)(I, 8));
+impl_system_param_fn!((A, 0)(B, 1)(C, 2)(D, 3)(E, 4)(F, 5)(G, 6)(H, 7)(I, 8)(J, 9));
