@@ -4,29 +4,25 @@ use cherrywood::{
     label::Label,
     resource::Resource,
     stack::Stack,
+    system::IntoDescribedSystem,
     system_param::{Res, ResMut},
-    widget::Widget,
 };
 
 struct Counter(i32);
 impl Resource for Counter {}
 
 fn main() {
-    let mut app = App::new(ui);
+    let mut app = App::new(Stack::new().with_children((
+        Button::new().subscribe_on_click((
+            increment_counter.into_described(),
+            send_request.into_described(),
+        )),
+        Label::new().with_content(|counter: Res<Counter>| {
+            println!("Counter changed.");
+            format!("Counter: {}", counter.0)
+        }),
+    )));
     app.insert_resource(Counter(0));
-}
-
-fn ui() -> impl Widget {
-    let mut button = Button::new();
-    button.on_click.subscribe(increment_counter);
-    button.on_click.subscribe(send_request);
-
-    let label = Label::new().with_content(|counter: Res<Counter>| {
-        println!("Counter changed.");
-        format!("Counter: {}", counter.0)
-    });
-
-    Stack::new().with_children((button, label))
 }
 
 fn increment_counter(mut counter: ResMut<Counter>) {

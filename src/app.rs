@@ -5,11 +5,10 @@ pub struct App {
 }
 
 impl App {
-    pub fn new<W: Widget>(main: impl FnOnce() -> W) -> Self {
+    pub fn new<W: Widget>(_widget: W) -> Self {
         let app = Self {
             resources: Resources::new(),
         };
-        let _widget = Box::new(main());
         app
     }
 

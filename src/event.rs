@@ -1,8 +1,4 @@
-use crate::{
-    app::App,
-    system::{BoxedDescribedSystem, DescribedSystem, IntoDescribedSystem},
-    system_param::SystemParam,
-};
+use crate::{app::App, system::BoxedDescribedSystem, system_batch::SystemBatch};
 
 pub struct Event {
     systems: Vec<BoxedDescribedSystem>,
@@ -15,13 +11,12 @@ impl Event {
         }
     }
 
-    pub fn subscribe<F: IntoDescribedSystem<(), Params>, Params: SystemParam>(
-        &mut self,
-        system: F,
-    ) {
-        let mut system = Box::new(system.into_described());
-        system.initialize();
-        self.systems.push(system);
+    pub fn subscribe<B: SystemBatch>(&mut self, systems: B) {
+        self.systems.reserve(B::CAPACITY);
+        for mut system in systems.into_iter() {
+            system.initialize();
+            self.systems.push(system);
+        }
     }
 
     pub fn run(&mut self, container: &mut App) {

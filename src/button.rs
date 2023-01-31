@@ -1,4 +1,4 @@
-use crate::{event::Event, widget::Widget};
+use crate::{event::Event, system_batch::SystemBatch, widget::Widget};
 
 pub struct Button {
     pub on_click: Event,
@@ -9,6 +9,11 @@ impl Button {
         Self {
             on_click: Event::new(),
         }
+    }
+
+    pub fn subscribe_on_click<B: SystemBatch>(mut self, systems: B) -> Self {
+        self.on_click.subscribe(systems);
+        self
     }
 }
 
