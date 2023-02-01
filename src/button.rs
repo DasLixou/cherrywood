@@ -1,18 +1,18 @@
 use std::any::TypeId;
 
 use crate::{
-    app::App, event_container::EventContainer, holding_ptr::HoldingPtr, system_batch::SystemBatch,
+    app::App, event_catcher::EventCatcher, holding_ptr::HoldingPtr, system_batch::SystemBatch,
     widget::Widget,
 };
 
 pub struct Button {
-    pub on_click: EventContainer,
+    pub on_click: EventCatcher,
 }
 
 impl Button {
     pub fn new() -> Self {
         Self {
-            on_click: EventContainer::new(),
+            on_click: EventCatcher::new(),
         }
     }
 
