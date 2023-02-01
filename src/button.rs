@@ -1,8 +1,8 @@
 use std::any::TypeId;
 
 use crate::{
-    app::App, event_catcher::EventCatcher, holding_ptr::HoldingPtr, system_batch::SystemBatch,
-    widget::Widget,
+    app::App, event::Event, event_catcher::EventCatcher, holding_ptr::HoldingPtr,
+    system_batch::SystemBatch, widget::Widget,
 };
 
 pub struct Button {
@@ -16,20 +16,15 @@ impl Button {
         }
     }
 
-    pub fn subscribe_on_click<B: SystemBatch>(mut self, systems: B) -> Self {
-        self.on_click.subscribe(systems);
+    pub fn subscribe_event<E: Event + 'static, B: SystemBatch>(mut self, systems: B) -> Self {
+        self.on_click.subscribe(TypeId::of::<E>(), systems);
         self
     }
 }
 
 impl Widget for Button {
-    fn dispatch_event(
-        &mut self,
-        app: &mut App,
-        _t: TypeId,
-        _ptr: HoldingPtr,
-    ) -> Option<HoldingPtr> {
-        self.on_click.run(app);
+    fn dispatch_event(&mut self, app: &mut App, t: TypeId, _ptr: HoldingPtr) -> Option<HoldingPtr> {
+        self.on_click.run(t, app);
         None
     }
 

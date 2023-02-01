@@ -15,7 +15,7 @@ impl Resource for Counter {}
 
 fn main() {
     let mut app = App::new(Stack::new().with_children((
-        Button::new().subscribe_on_click((
+        Button::new().subscribe_event::<PointerClick, _>((
             increment_counter.into_described(),
             send_request.into_described(),
         )),
