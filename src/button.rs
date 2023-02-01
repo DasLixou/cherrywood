@@ -1,13 +1,13 @@
-use crate::{event::Event, system_batch::SystemBatch, widget::Widget};
+use crate::{event_container::EventContainer, system_batch::SystemBatch, widget::Widget};
 
 pub struct Button {
-    pub on_click: Event,
+    pub on_click: EventContainer,
 }
 
 impl Button {
     pub fn new() -> Self {
         Self {
-            on_click: Event::new(),
+            on_click: EventContainer::new(),
         }
     }
 

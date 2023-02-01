@@ -1,10 +1,10 @@
 use crate::{app::App, system::BoxedDescribedSystem, system_batch::SystemBatch};
 
-pub struct Event {
+pub struct EventContainer {
     systems: Vec<BoxedDescribedSystem>,
 }
 
-impl Event {
+impl EventContainer {
     pub fn new() -> Self {
         Self {
             systems: Vec::new(),
