@@ -34,8 +34,13 @@ impl App {
     }
 
     pub fn dispatch_event<E: Event + 'static>(&mut self, event: E) -> Option<E> {
-        self.widget
-            .dispatch_event(TypeId::of::<E>(), HoldingPtr::new(event))
-            .map(|ret| ret.destroy_as::<E>())
+        // TODO: can we make this safe?
+        unsafe {
+            let ptr: *mut Self = self;
+            (&mut *ptr)
+                .widget
+                .dispatch_event(self, TypeId::of::<E>(), HoldingPtr::new(event))
+                .map(|ret| ret.destroy_as::<E>())
+        }
     }
 }

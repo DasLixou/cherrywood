@@ -19,9 +19,9 @@ impl EventContainer {
         }
     }
 
-    pub fn run(&mut self, container: &mut App) {
+    pub fn run(&mut self, app: &mut App) {
         for sys in &mut self.systems {
-            sys.run(container);
+            sys.run(app);
         }
     }
 }

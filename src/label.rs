@@ -1,4 +1,8 @@
+use std::any::TypeId;
+
 use crate::{
+    app::App,
+    holding_ptr::HoldingPtr,
     system::{BoxedDescribedSystem, DescribedSystem, IntoDescribedSystem},
     system_param::SystemParam,
     widget::Widget,
@@ -27,9 +31,10 @@ impl Label {
 impl Widget for Label {
     fn dispatch_event(
         &mut self,
-        _t: std::any::TypeId,
-        _ptr: crate::holding_ptr::HoldingPtr,
-    ) -> Option<crate::holding_ptr::HoldingPtr> {
+        _app: &mut App,
+        _t: TypeId,
+        _ptr: HoldingPtr,
+    ) -> Option<HoldingPtr> {
         todo!()
     }
 

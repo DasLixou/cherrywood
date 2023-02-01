@@ -1,4 +1,9 @@
-use crate::{event_container::EventContainer, system_batch::SystemBatch, widget::Widget};
+use std::any::TypeId;
+
+use crate::{
+    app::App, event_container::EventContainer, holding_ptr::HoldingPtr, system_batch::SystemBatch,
+    widget::Widget,
+};
 
 pub struct Button {
     pub on_click: EventContainer,
@@ -20,10 +25,12 @@ impl Button {
 impl Widget for Button {
     fn dispatch_event(
         &mut self,
-        _t: std::any::TypeId,
-        _ptr: crate::holding_ptr::HoldingPtr,
-    ) -> Option<crate::holding_ptr::HoldingPtr> {
-        todo!()
+        app: &mut App,
+        _t: TypeId,
+        _ptr: HoldingPtr,
+    ) -> Option<HoldingPtr> {
+        self.on_click.run(app);
+        None
     }
 
     fn as_any(&self) -> &dyn std::any::Any {
