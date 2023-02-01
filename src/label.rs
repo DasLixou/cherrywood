@@ -1,8 +1,6 @@
-use std::any::TypeId;
+use std::{any::TypeId, rc::Rc, sync::Mutex};
 
 use crate::{
-    app::App,
-    holding_ptr::HoldingPtr,
     system::{BoxedDescribedSystem, DescribedSystem, IntoDescribedSystem},
     system_param::SystemParam,
     widget::Widget,
@@ -21,20 +19,15 @@ impl Label {
         mut self,
         system: F,
     ) -> Self {
-        let mut system = Box::new(system.into_described());
-        system.initialize();
+        let system = Rc::new(Mutex::new(system.into_described()));
+        system.lock().unwrap().initialize();
         self.content = Some(system);
         self
     }
 }
 
 impl Widget for Label {
-    fn dispatch_event(
-        &mut self,
-        _app: &mut App,
-        _t: TypeId,
-        _ptr: HoldingPtr,
-    ) -> Option<HoldingPtr> {
+    fn fetch_events(&mut self, _event_type: TypeId) -> Vec<BoxedDescribedSystem> {
         todo!()
     }
 

@@ -1,6 +1,6 @@
 use std::any::TypeId;
 
-use crate::{app::App, holding_ptr::HoldingPtr, widget::Widget, widget_batch::WidgetBatch};
+use crate::{system::BoxedDescribedSystem, widget::Widget, widget_batch::WidgetBatch};
 
 pub struct Stack {
     pub children: Vec<Box<dyn Widget>>,
@@ -21,20 +21,14 @@ impl Stack {
 }
 
 impl Widget for Stack {
-    fn dispatch_event(
-        &mut self,
-        app: &mut App,
-        t: TypeId,
-        mut ptr: HoldingPtr,
-    ) -> Option<HoldingPtr> {
+    fn fetch_events(&mut self, event_type: TypeId) -> Vec<BoxedDescribedSystem> {
         for child in &mut self.children {
-            if let Some(catch) = child.dispatch_event(app, t, ptr) {
-                ptr = catch;
-            } else {
-                return None;
+            let vec = child.fetch_events(event_type);
+            if !vec.is_empty() {
+                return vec;
             }
         }
-        Some(ptr)
+        vec![]
     }
 
     fn as_any(&self) -> &dyn std::any::Any {

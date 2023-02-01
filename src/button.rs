@@ -1,31 +1,30 @@
 use std::any::TypeId;
 
 use crate::{
-    app::App, event::Event, event_catcher::EventCatcher, holding_ptr::HoldingPtr,
+    event::Event, event_catcher::EventCatcher, system::BoxedDescribedSystem,
     system_batch::SystemBatch, widget::Widget,
 };
 
 pub struct Button {
-    pub on_click: EventCatcher,
+    pub event_catcher: EventCatcher,
 }
 
 impl Button {
     pub fn new() -> Self {
         Self {
-            on_click: EventCatcher::new(),
+            event_catcher: EventCatcher::new(),
         }
     }
 
     pub fn subscribe_event<E: Event + 'static, B: SystemBatch>(mut self, systems: B) -> Self {
-        self.on_click.subscribe(TypeId::of::<E>(), systems);
+        self.event_catcher.subscribe(TypeId::of::<E>(), systems);
         self
     }
 }
 
 impl Widget for Button {
-    fn dispatch_event(&mut self, app: &mut App, t: TypeId, _ptr: HoldingPtr) -> Option<HoldingPtr> {
-        self.on_click.run(t, app);
-        None
+    fn fetch_events(&mut self, event_type: TypeId) -> Vec<BoxedDescribedSystem> {
+        self.event_catcher.fetch(event_type)
     }
 
     fn as_any(&self) -> &dyn std::any::Any {

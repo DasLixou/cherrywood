@@ -1,8 +1,6 @@
 use std::any::TypeId;
 
-use crate::{
-    event::Event, holding_ptr::HoldingPtr, resource::Resource, resources::Resources, widget::Widget,
-};
+use crate::{event::Event, resource::Resource, resources::Resources, widget::Widget};
 
 pub struct App {
     pub(crate) resources: Resources,
@@ -33,14 +31,11 @@ impl App {
             .map(|raw| unsafe { &mut *raw.cast::<R>() })
     }
 
-    pub fn dispatch_event<E: Event + 'static>(&mut self, event: E) -> Option<E> {
-        // TODO: can we make this safe?
-        unsafe {
-            let ptr: *mut Self = self;
-            (&mut *ptr)
-                .widget
-                .dispatch_event(self, TypeId::of::<E>(), HoldingPtr::new(event))
-                .map(|ret| ret.destroy_as::<E>())
+    pub fn dispatch_event<E: Event + 'static>(&mut self, _event: E) {
+        // TODO: use event
+        let mut systems = self.widget.fetch_events(TypeId::of::<E>());
+        for sys in &mut systems {
+            sys.lock().unwrap().run(self);
         }
     }
 }

@@ -1,3 +1,5 @@
+use std::{rc::Rc, sync::Mutex};
+
 use crate::system::{BoxedDescribedSystem, DescribedSystem};
 
 pub trait SystemBatch {
@@ -24,7 +26,7 @@ impl<S: DescribedSystem<()> + 'static> SystemBatch for S {
     type IntoIter = std::iter::Once<BoxedDescribedSystem>;
 
     fn into_iter(self) -> Self::IntoIter {
-        std::iter::once(Box::new(self))
+        std::iter::once(Rc::new(Mutex::new(self)))
     }
 }
 
@@ -49,7 +51,7 @@ macro_rules! impl_system_batch_tuple {
 
             fn into_iter(self) -> Self::IntoIter {
                 ([$(
-                    Box::new(self.$index)
+                    Rc::new(Mutex::new(self.$index))
                 ),*] as [BoxedDescribedSystem; { method_arity!($($generic)*) }]).into_iter()
             }
         }
