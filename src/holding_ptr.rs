@@ -18,8 +18,17 @@ impl HoldingPtr {
     }
 
     #[inline]
-    pub fn as_ptr(&self) -> *mut u8 {
+    pub const fn as_ptr(&self) -> *const u8 {
+        self.0.as_ptr() as *const u8
+    }
+
+    #[inline]
+    pub const fn as_ptr_mut(&self) -> *mut u8 {
         self.0.as_ptr()
+    }
+
+    pub fn destroy_as<V>(self) -> V {
+        unsafe { std::ptr::read(self.as_ptr() as *const V) }
     }
 }
 

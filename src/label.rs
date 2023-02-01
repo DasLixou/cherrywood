@@ -25,6 +25,14 @@ impl Label {
 }
 
 impl Widget for Label {
+    fn dispatch_event(
+        &mut self,
+        _t: std::any::TypeId,
+        _ptr: crate::holding_ptr::HoldingPtr,
+    ) -> Option<crate::holding_ptr::HoldingPtr> {
+        todo!()
+    }
+
     fn as_any(&self) -> &dyn std::any::Any {
         self
     }

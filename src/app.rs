@@ -1,15 +1,20 @@
-use crate::{resource::Resource, resources::Resources, widget::Widget};
+use std::any::TypeId;
+
+use crate::{
+    event::Event, holding_ptr::HoldingPtr, resource::Resource, resources::Resources, widget::Widget,
+};
 
 pub struct App {
     pub(crate) resources: Resources,
+    widget: Box<dyn Widget>,
 }
 
 impl App {
-    pub fn new<W: Widget>(_widget: W) -> Self {
-        let app = Self {
+    pub fn new<W: Widget + 'static>(widget: W) -> Self {
+        Self {
             resources: Resources::new(),
-        };
-        app
+            widget: Box::new(widget),
+        }
     }
 
     pub fn insert_resource<R: Resource + 'static>(&mut self, value: R) {
@@ -26,5 +31,11 @@ impl App {
         self.resources
             .get::<R>()
             .map(|raw| unsafe { &mut *raw.cast::<R>() })
+    }
+
+    pub fn dispatch_event<E: Event + 'static>(&mut self, event: E) -> Option<E> {
+        self.widget
+            .dispatch_event(TypeId::of::<E>(), HoldingPtr::new(event))
+            .map(|ret| ret.destroy_as::<E>())
     }
 }

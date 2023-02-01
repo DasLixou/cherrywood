@@ -21,6 +21,8 @@ impl Resources {
     }
 
     pub fn get<R: Resource + 'static>(&self) -> Option<*mut u8> {
-        self.data.get(&TypeId::of::<R>()).map(|ptr| ptr.as_ptr())
+        self.data
+            .get(&TypeId::of::<R>())
+            .map(|ptr| ptr.as_ptr_mut())
     }
 }
