@@ -1,4 +1,4 @@
-use std::{any::TypeId, rc::Rc, sync::Mutex};
+use std::{any::TypeId, cell::RefCell, rc::Rc};
 
 use crate::{
     system::{BoxedDescribedSystem, DescribedSystem, IntoDescribedSystem},
@@ -19,8 +19,8 @@ impl Label {
         mut self,
         system: F,
     ) -> Self {
-        let system = Rc::new(Mutex::new(system.into_described()));
-        system.lock().unwrap().initialize();
+        let system = Rc::new(RefCell::new(system.into_described()));
+        system.borrow_mut().initialize();
         self.content = Some(system);
         self
     }

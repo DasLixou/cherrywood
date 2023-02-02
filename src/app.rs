@@ -1,4 +1,4 @@
-use std::{any::TypeId, collections::VecDeque, rc::Rc, sync::Mutex};
+use std::{any::TypeId, cell::RefCell, collections::VecDeque, rc::Rc};
 
 use crate::{
     event::Event,
@@ -16,7 +16,7 @@ impl App {
     pub fn new<W: Widget + 'static>(widget: W) -> Self {
         Self {
             resources: Resources::new(),
-            widget: Rc::new(Mutex::new(widget)),
+            widget: Rc::new(RefCell::new(widget)),
         }
     }
 
@@ -41,11 +41,11 @@ impl App {
         let mut deque = VecDeque::new();
         deque.push_back(self.widget.clone());
         while let Some(widget) = deque.pop_front() {
-            let mut systems = widget.lock().unwrap().fetch_events(TypeId::of::<E>());
+            let mut systems = widget.borrow_mut().fetch_events(TypeId::of::<E>());
             for sys in &mut systems {
-                sys.lock().unwrap().run(self);
+                sys.borrow_mut().run(self);
             }
-            deque.extend(widget.lock().unwrap().children_mut());
+            deque.extend(widget.borrow_mut().children_mut());
         }
     }
 }

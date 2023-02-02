@@ -1,4 +1,4 @@
-use std::{marker::PhantomData, rc::Rc, sync::Mutex};
+use std::{cell::RefCell, marker::PhantomData, rc::Rc};
 
 use crate::{access::Access, app::App, system_param::SystemParam};
 
@@ -14,7 +14,7 @@ pub trait DescribedSystem<Out> {
     fn run(&mut self, app: &mut App) -> Out;
 }
 
-pub type BoxedDescribedSystem<Out = ()> = Rc<Mutex<dyn DescribedSystem<Out>>>;
+pub type BoxedDescribedSystem<Out = ()> = Rc<RefCell<dyn DescribedSystem<Out>>>;
 
 pub struct FunctionSystem<F, Params> {
     system: F,

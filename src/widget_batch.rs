@@ -1,4 +1,4 @@
-use std::{rc::Rc, sync::Mutex};
+use std::{cell::RefCell, rc::Rc};
 
 use crate::widget::{BoxedWidget, Widget};
 
@@ -26,7 +26,7 @@ impl<W: Widget + 'static> WidgetBatch for W {
     type IntoIter = std::iter::Once<BoxedWidget>;
 
     fn into_iter(self) -> Self::IntoIter {
-        std::iter::once(Rc::new(Mutex::new(self)))
+        std::iter::once(Rc::new(RefCell::new(self)))
     }
 }
 
@@ -51,7 +51,7 @@ macro_rules! impl_widget_batch_tuple {
 
             fn into_iter(self) -> Self::IntoIter {
                 ([$(
-                    Rc::new(Mutex::new(self.$index))
+                    Rc::new(RefCell::new(self.$index))
                 ),*] as [BoxedWidget; { method_arity!($($generic)*) }]).into_iter()
             }
         }

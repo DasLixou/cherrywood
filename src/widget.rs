@@ -1,7 +1,7 @@
 use std::{
     any::{Any, TypeId},
+    cell::RefCell,
     rc::Rc,
-    sync::Mutex,
 };
 
 use crate::system::BoxedDescribedSystem;
@@ -15,4 +15,4 @@ pub trait Widget {
     fn as_any_mut(&mut self) -> &mut dyn Any;
 }
 
-pub type BoxedWidget = Rc<Mutex<dyn Widget>>;
+pub type BoxedWidget = Rc<RefCell<dyn Widget>>;
