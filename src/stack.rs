@@ -25,13 +25,7 @@ impl Stack {
 }
 
 impl Widget for Stack {
-    fn fetch_events(&mut self, event_type: TypeId) -> Vec<BoxedDescribedSystem> {
-        for child in &mut self.children {
-            let vec = child.lock().unwrap().fetch_events(event_type);
-            if !vec.is_empty() {
-                return vec;
-            }
-        }
+    fn fetch_events(&mut self, _event_type: TypeId) -> Vec<BoxedDescribedSystem> {
         vec![]
     }
 

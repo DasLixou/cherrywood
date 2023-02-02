@@ -1,17 +1,22 @@
-use std::any::TypeId;
+use std::{any::TypeId, collections::VecDeque, rc::Rc, sync::Mutex};
 
-use crate::{event::Event, resource::Resource, resources::Resources, widget::Widget};
+use crate::{
+    event::Event,
+    resource::Resource,
+    resources::Resources,
+    widget::{BoxedWidget, Widget},
+};
 
 pub struct App {
     pub(crate) resources: Resources,
-    widget: Box<dyn Widget>,
+    widget: BoxedWidget,
 }
 
 impl App {
     pub fn new<W: Widget + 'static>(widget: W) -> Self {
         Self {
             resources: Resources::new(),
-            widget: Box::new(widget),
+            widget: Rc::new(Mutex::new(widget)),
         }
     }
 
@@ -33,9 +38,14 @@ impl App {
 
     pub fn dispatch_event<E: Event + 'static>(&mut self, _event: E) {
         // TODO: use event
-        let mut systems = self.widget.fetch_events(TypeId::of::<E>());
-        for sys in &mut systems {
-            sys.lock().unwrap().run(self);
+        let mut deque = VecDeque::new();
+        deque.push_back(self.widget.clone());
+        while let Some(widget) = deque.pop_front() {
+            let mut systems = widget.lock().unwrap().fetch_events(TypeId::of::<E>());
+            for sys in &mut systems {
+                sys.lock().unwrap().run(self);
+            }
+            deque.extend(widget.lock().unwrap().children_mut());
         }
     }
 }

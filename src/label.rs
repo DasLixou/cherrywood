@@ -28,7 +28,7 @@ impl Label {
 
 impl Widget for Label {
     fn fetch_events(&mut self, _event_type: TypeId) -> Vec<BoxedDescribedSystem> {
-        todo!()
+        vec![]
     }
 
     fn children_mut(&mut self) -> Vec<BoxedWidget> {
