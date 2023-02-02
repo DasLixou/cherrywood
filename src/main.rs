@@ -1,13 +1,11 @@
 use cherrywood::{
     app::App,
-    button::Button,
     event::PointerClick,
-    label::Label,
     math::point::Point,
     params::{event_catcher::EventCatcher, res::Res, res_mut::ResMut},
     resource::Resource,
-    stack::Stack,
     system::IntoDescribedSystem,
+    widgets::{button::Button, label::Label, stack::Stack},
 };
 
 struct Counter(i32);
