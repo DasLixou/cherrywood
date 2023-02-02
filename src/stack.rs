@@ -1,9 +1,13 @@
 use std::any::TypeId;
 
-use crate::{system::BoxedDescribedSystem, widget::Widget, widget_batch::WidgetBatch};
+use crate::{
+    system::BoxedDescribedSystem,
+    widget::{BoxedWidget, Widget},
+    widget_batch::WidgetBatch,
+};
 
 pub struct Stack {
-    pub children: Vec<Box<dyn Widget>>,
+    pub children: Vec<BoxedWidget>,
 }
 
 impl Stack {
@@ -23,12 +27,16 @@ impl Stack {
 impl Widget for Stack {
     fn fetch_events(&mut self, event_type: TypeId) -> Vec<BoxedDescribedSystem> {
         for child in &mut self.children {
-            let vec = child.fetch_events(event_type);
+            let vec = child.lock().unwrap().fetch_events(event_type);
             if !vec.is_empty() {
                 return vec;
             }
         }
         vec![]
+    }
+
+    fn children_mut(&mut self) -> Vec<BoxedWidget> {
+        self.children.clone()
     }
 
     fn as_any(&self) -> &dyn std::any::Any {

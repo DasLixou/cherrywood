@@ -1,8 +1,11 @@
 use std::any::TypeId;
 
 use crate::{
-    event::Event, event_catcher::EventCatcher, system::BoxedDescribedSystem,
-    system_batch::SystemBatch, widget::Widget,
+    event::Event,
+    event_catcher::EventCatcher,
+    system::BoxedDescribedSystem,
+    system_batch::SystemBatch,
+    widget::{BoxedWidget, Widget},
 };
 
 pub struct Button {
@@ -25,6 +28,10 @@ impl Button {
 impl Widget for Button {
     fn fetch_events(&mut self, event_type: TypeId) -> Vec<BoxedDescribedSystem> {
         self.event_catcher.fetch(event_type)
+    }
+
+    fn children_mut(&mut self) -> Vec<BoxedWidget> {
+        vec![]
     }
 
     fn as_any(&self) -> &dyn std::any::Any {

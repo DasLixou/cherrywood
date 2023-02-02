@@ -1,9 +1,11 @@
-use crate::widget::Widget;
+use std::{rc::Rc, sync::Mutex};
+
+use crate::widget::{BoxedWidget, Widget};
 
 pub trait WidgetBatch {
     const CAPACITY: usize;
 
-    type IntoIter: Iterator<Item = Box<dyn Widget>>;
+    type IntoIter: Iterator<Item = BoxedWidget>;
 
     fn into_iter(self) -> Self::IntoIter;
 }
@@ -11,7 +13,7 @@ pub trait WidgetBatch {
 impl WidgetBatch for () {
     const CAPACITY: usize = 0;
 
-    type IntoIter = std::iter::Empty<Box<dyn Widget>>;
+    type IntoIter = std::iter::Empty<BoxedWidget>;
 
     fn into_iter(self) -> Self::IntoIter {
         std::iter::empty()
@@ -21,10 +23,10 @@ impl WidgetBatch for () {
 impl<W: Widget + 'static> WidgetBatch for W {
     const CAPACITY: usize = 1;
 
-    type IntoIter = std::iter::Once<Box<dyn Widget>>;
+    type IntoIter = std::iter::Once<BoxedWidget>;
 
     fn into_iter(self) -> Self::IntoIter {
-        std::iter::once(Box::new(self))
+        std::iter::once(Rc::new(Mutex::new(self)))
     }
 }
 
@@ -45,12 +47,12 @@ macro_rules! impl_widget_batch_tuple {
         impl<$($generic: Widget + 'static),*> WidgetBatch for ($($generic,)+) {
             const CAPACITY: usize = method_arity!($($generic)*);
 
-            type IntoIter = std::array::IntoIter<Box<dyn Widget>, { method_arity!($($generic)*) }>;
+            type IntoIter = std::array::IntoIter<BoxedWidget, { method_arity!($($generic)*) }>;
 
             fn into_iter(self) -> Self::IntoIter {
                 ([$(
-                    Box::new(self.$index)
-                ),*] as [Box<dyn Widget>; { method_arity!($($generic)*) }]).into_iter()
+                    Rc::new(Mutex::new(self.$index))
+                ),*] as [BoxedWidget; { method_arity!($($generic)*) }]).into_iter()
             }
         }
     };

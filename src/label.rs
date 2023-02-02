@@ -3,7 +3,7 @@ use std::{any::TypeId, rc::Rc, sync::Mutex};
 use crate::{
     system::{BoxedDescribedSystem, DescribedSystem, IntoDescribedSystem},
     system_param::SystemParam,
-    widget::Widget,
+    widget::{BoxedWidget, Widget},
 };
 
 pub struct Label {
@@ -29,6 +29,10 @@ impl Label {
 impl Widget for Label {
     fn fetch_events(&mut self, _event_type: TypeId) -> Vec<BoxedDescribedSystem> {
         todo!()
+    }
+
+    fn children_mut(&mut self) -> Vec<BoxedWidget> {
+        vec![]
     }
 
     fn as_any(&self) -> &dyn std::any::Any {
