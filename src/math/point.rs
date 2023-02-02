@@ -1,5 +1,6 @@
 use std::ops::{Add, Sub};
 
+#[derive(Clone, Debug)]
 pub struct Point(pub i32, pub i32);
 
 impl Add for Point {

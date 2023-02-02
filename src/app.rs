@@ -2,8 +2,10 @@ use std::{any::TypeId, cell::RefCell, collections::VecDeque, rc::Rc};
 
 use crate::{
     event::Event,
+    holding_ptr::HoldingPtr,
     resource::Resource,
     resources::Resources,
+    system_context::SystemContext,
     widget::{BoxedWidget, Widget},
 };
 
@@ -36,14 +38,16 @@ impl App {
             .map(|raw| unsafe { &mut *raw.cast::<R>() })
     }
 
-    pub fn dispatch_event<E: Event + 'static>(&mut self, _event: E) {
-        // TODO: use event
+    pub fn dispatch_event<E: Event + 'static>(&mut self, event: E) {
         let mut deque = VecDeque::new();
         deque.push_back(self.widget.clone());
         while let Some(widget) = deque.pop_front() {
             let mut systems = widget.borrow_mut().fetch_events(TypeId::of::<E>());
             for sys in &mut systems {
-                sys.borrow_mut().run(self);
+                sys.borrow_mut().run(SystemContext {
+                    app: self,
+                    event: Some(HoldingPtr::new(event.clone())),
+                });
             }
             deque.extend(widget.borrow_mut().children_mut());
         }

@@ -27,6 +27,14 @@ impl HoldingPtr {
         self.0.as_ptr()
     }
 
+    pub fn borrow_as<V>(&self) -> &V {
+        unsafe { (self.as_ptr() as *const V).as_ref().unwrap() }
+    }
+
+    pub fn borrow_as_mut<V>(&self) -> &mut V {
+        unsafe { (self.as_ptr_mut() as *mut V).as_mut().unwrap() }
+    }
+
     pub fn destroy_as<V>(self) -> V {
         unsafe { std::ptr::read(self.as_ptr() as *const V) }
     }

@@ -1,6 +1,6 @@
 use crate::access::Access;
-use crate::app::App;
 use crate::system::SystemParamFunction;
+use crate::system_context::SystemContext;
 use crate::system_param::SystemParam;
 
 impl SystemParam for () {
@@ -8,7 +8,7 @@ impl SystemParam for () {
 
     fn initialize(_access: &mut Access) {}
 
-    fn get_param<'c>(_app: &'c mut App) -> Self::Param<'c> {
+    fn get_param<'c>(_context: &mut SystemContext<'c>) -> Self::Param<'c> {
         ()
     }
 }
@@ -23,7 +23,7 @@ where
     {
     }
 
-    fn run(&mut self, _app: &mut App) -> () {
+    fn run<'c>(&mut self, _context: SystemContext<'c>) -> () {
         self();
         ()
     }
@@ -40,11 +40,11 @@ macro_rules! impl_system_param_fn {
                 )*
             }
 
-            fn get_param<'c>(app: &'c mut App) -> Self::Param<'c> {
+            fn get_param<'c>(context: &'c mut SystemContext<'_>) -> Self::Param<'c> {
                 ($(
                     <$generic as SystemParam>::get_param(unsafe {
                         // SAFETY: we already checked for conflicts in `initialize`
-                        &mut *((&mut *app) as *mut App)
+                        &mut *((&mut *context) as *mut SystemContext)
                     })
                 ),*,)
             }
@@ -61,8 +61,8 @@ macro_rules! impl_system_param_fn {
                 <($($generic),*,) as SystemParam>::initialize(access);
             }
 
-            fn run(&mut self, app: &mut App) -> Out {
-                let params = <($($generic),*,) as SystemParam>::get_param(app);
+            fn run<'c>(&mut self, mut context: SystemContext<'c>) -> Out {
+                let params = <($($generic),*,) as SystemParam>::get_param(&mut context);
                 self($(
                     params.$index
                 ),*)
