@@ -2,32 +2,32 @@ use std::any::TypeId;
 
 use crate::{
     event::Event,
-    event_catcher::EventCatcher,
+    event_rack::EventRack,
     system::BoxedDescribedSystem,
     system_batch::SystemBatch,
     widget::{BoxedWidget, Widget},
 };
 
 pub struct Button {
-    pub event_catcher: EventCatcher,
+    pub event_rack: EventRack,
 }
 
 impl Button {
     pub fn new() -> Self {
         Self {
-            event_catcher: EventCatcher::new(),
+            event_rack: EventRack::new(),
         }
     }
 
     pub fn subscribe_event<E: Event + 'static, B: SystemBatch>(mut self, systems: B) -> Self {
-        self.event_catcher.subscribe(TypeId::of::<E>(), systems);
+        self.event_rack.subscribe(TypeId::of::<E>(), systems);
         self
     }
 }
 
 impl Widget for Button {
     fn fetch_events(&mut self, event_type: TypeId) -> Vec<BoxedDescribedSystem> {
-        self.event_catcher.fetch(event_type)
+        self.event_rack.fetch(event_type)
     }
 
     fn children_mut(&mut self) -> Vec<BoxedWidget> {

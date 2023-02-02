@@ -4,11 +4,11 @@ use hashbrown::HashMap;
 
 use crate::{app::App, system::BoxedDescribedSystem, system_batch::SystemBatch};
 
-pub struct EventCatcher {
+pub struct EventRack {
     systems: HashMap<TypeId, Vec<BoxedDescribedSystem>>,
 }
 
-impl EventCatcher {
+impl EventRack {
     pub fn new() -> Self {
         Self {
             systems: HashMap::new(),

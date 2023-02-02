@@ -2,7 +2,7 @@ pub mod access;
 pub mod app;
 pub mod button;
 pub mod event;
-pub mod event_catcher;
+pub mod event_rack;
 pub mod holding_ptr;
 pub mod label;
 pub mod math;
