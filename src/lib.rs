@@ -6,6 +6,7 @@ pub mod event_rack;
 pub mod holding_ptr;
 pub mod label;
 pub mod math;
+pub mod params;
 pub mod resource;
 pub mod resources;
 pub mod stack;

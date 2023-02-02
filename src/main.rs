@@ -4,10 +4,10 @@ use cherrywood::{
     event::PointerClick,
     label::Label,
     math::point::Point,
+    params::{event_catcher::EventCatcher, res::Res, res_mut::ResMut},
     resource::Resource,
     stack::Stack,
     system::IntoDescribedSystem,
-    system_param::{EventCatcher, Res, ResMut},
 };
 
 struct Counter(i32);
