@@ -1,6 +1,6 @@
 use std::{cell::RefCell, rc::Rc};
 
-use crate::{access::Access, system_context::SystemContext, system_param::SystemParam};
+use crate::{access::Access, app::App, system_context::SystemContext, system_param::SystemParam};
 
 pub trait IntoDescribedSystem<Out, Params> {
     type System: DescribedSystem<Out> + 'static;
@@ -12,6 +12,8 @@ pub trait DescribedSystem<Out> {
     fn initialize(&mut self);
 
     fn run<'c>(&mut self, context: SystemContext<'c>) -> Out;
+
+    fn apply<'a>(&mut self, app: &'a mut App);
 }
 
 pub type BoxedDescribedSystem<Out = ()> = Rc<RefCell<dyn DescribedSystem<Out>>>;
@@ -42,6 +44,7 @@ where
     F: SystemParamFunction<Out, Params> + 'static,
 {
     fn initialize(&mut self) {
+        self.access.clear();
         self.state = Some(F::initialize(&mut self.access));
     }
 
@@ -54,6 +57,14 @@ where
             context,
         )
     }
+
+    fn apply<'a>(&mut self, app: &'a mut App) {
+        let state = self
+            .state
+            .take()
+            .expect("State from System was uninitialized! Maybe the buffers were already applied?");
+        SystemParamFunction::apply(&mut self.system, state, app)
+    }
 }
 
 pub(crate) trait SystemParamFunction<Out, Params: SystemParam>: 'static {
@@ -62,4 +73,6 @@ pub(crate) trait SystemParamFunction<Out, Params: SystemParam>: 'static {
         Self: Sized;
 
     fn run<'c>(&mut self, state: &mut Params::State, context: SystemContext<'c>) -> Out;
+
+    fn apply<'a>(&mut self, state: Params::State, app: &'a mut App);
 }

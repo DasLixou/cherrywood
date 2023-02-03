@@ -34,6 +34,8 @@ where
         self();
         ()
     }
+
+    fn apply<'a>(&mut self, _state: <() as SystemParam>::State, _app: &'a mut App) {}
 }
 
 macro_rules! impl_system_param_fn {
@@ -80,6 +82,10 @@ macro_rules! impl_system_param_fn {
                 self($(
                     params.$index
                 ),*)
+            }
+
+            fn apply<'a>(&mut self, state: <($($generic),*,) as SystemParam>::State, app: &'a mut App) {
+                <($($generic),*,) as SystemParam>::apply(state, app)
             }
         }
     };

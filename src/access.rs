@@ -39,4 +39,8 @@ impl Access {
         };
         self
     }
+
+    pub fn clear(&mut self) {
+        self.0.clear();
+    }
 }

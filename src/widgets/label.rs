@@ -1,7 +1,7 @@
 use std::{any::TypeId, cell::RefCell, rc::Rc};
 
 use crate::{
-    system::{BoxedDescribedSystem, DescribedSystem, IntoDescribedSystem},
+    system::{BoxedDescribedSystem, IntoDescribedSystem},
     system_param::SystemParam,
     widget::{BoxedWidget, Widget},
 };
@@ -20,7 +20,6 @@ impl Label {
         system: F,
     ) -> Self {
         let system = Rc::new(RefCell::new(system.into_described()));
-        system.borrow_mut().initialize();
         self.content = Some(system);
         self
     }

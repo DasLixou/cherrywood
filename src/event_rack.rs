@@ -18,7 +18,6 @@ impl EventRack {
     pub fn subscribe<B: SystemBatch>(&mut self, event_type: TypeId, systems: B) {
         self.systems.reserve(B::CAPACITY);
         for system in systems.into_iter() {
-            system.borrow_mut().initialize();
             self.systems.entry(event_type).or_default().push(system);
         }
     }

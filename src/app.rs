@@ -41,15 +41,21 @@ impl App {
     pub fn dispatch_event<E: EventMessage + 'static>(&mut self, event: Event<E>) {
         let mut deque = VecDeque::new();
         deque.push_back(self.widget.clone());
+        let mut called_systems = Vec::new();
         while let Some(widget) = deque.pop_front() {
             let mut systems = widget.borrow_mut().fetch_events(TypeId::of::<E>());
             for sys in &mut systems {
+                sys.borrow_mut().initialize();
                 sys.borrow_mut().run(SystemContext {
                     app: self,
                     event: Some(HoldingPtr::new(event.clone())),
                 });
+                called_systems.push(sys.to_owned());
             }
             deque.extend(widget.borrow_mut().children_mut());
+        }
+        for sys in called_systems {
+            sys.borrow_mut().apply(self);
         }
     }
 }
