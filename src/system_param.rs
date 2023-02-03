@@ -7,7 +7,7 @@ pub trait SystemParam: Sized {
     fn initialize(access: &mut Access) -> Self::State;
 
     fn get_param<'c>(
-        state: &mut Self::State,
+        state: &'c mut Self::State,
         context: &'c mut SystemContext<'_>,
     ) -> Self::Param<'c>;
 

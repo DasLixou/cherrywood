@@ -48,7 +48,7 @@ macro_rules! impl_system_param_fn {
                 ),*,)
             }
 
-            fn get_param<'c>(state: &mut Self::State, context: &'c mut SystemContext<'_>) -> Self::Param<'c> {
+            fn get_param<'c>(state: &'c mut Self::State, context: &'c mut SystemContext<'_>) -> Self::Param<'c> {
                 ($(
                     <$generic as SystemParam>::get_param(&mut state.$index, unsafe {
                         // SAFETY: we already checked for conflicts in `initialize`

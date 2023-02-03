@@ -8,13 +8,13 @@ use crate::{
     system_param::SystemParam,
 };
 
-pub struct EventThrower<E: EventMessage> {
-    events: Vec<Event<E>>,
+pub struct EventThrower<'w, E: EventMessage> {
+    events: &'w mut Vec<Event<E>>,
 }
 
-impl<E: EventMessage + 'static> SystemParam for EventThrower<E> {
+impl<'w, E: EventMessage + 'static> SystemParam for EventThrower<'w, E> {
     type State = Vec<Event<E>>;
-    type Param<'c> = EventThrower<E>;
+    type Param<'c> = EventThrower<'c, E>;
 
     fn initialize(_access: &mut Access) -> Self::State {
         //access.with_read::<R>(); // TODO: access with multiple types
@@ -22,10 +22,10 @@ impl<E: EventMessage + 'static> SystemParam for EventThrower<E> {
     }
 
     fn get_param<'c>(
-        _state: &mut Self::State,
-        _context: &mut SystemContext<'c>,
+        state: &'c mut Self::State,
+        _context: &'c mut SystemContext<'_>,
     ) -> Self::Param<'c> {
-        EventThrower { events: vec![] }
+        EventThrower { events: state }
     }
 
     fn apply<'a>(state: Self::State, app: &'a mut App) {
@@ -35,7 +35,7 @@ impl<E: EventMessage + 'static> SystemParam for EventThrower<E> {
     }
 }
 
-impl<E: EventMessage> AddAssign<(E, EventKind)> for EventThrower<E> {
+impl<'w, E: EventMessage> AddAssign<(E, EventKind)> for EventThrower<'w, E> {
     fn add_assign(&mut self, rhs: (E, EventKind)) {
         self.events.push(Event::new(rhs.0, rhs.1));
     }
