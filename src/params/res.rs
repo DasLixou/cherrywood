@@ -1,7 +1,8 @@
 use std::ops::Deref;
 
 use crate::{
-    access::Access, resource::Resource, system_context::SystemContext, system_param::SystemParam,
+    access::Access, app::App, resource::Resource, system_context::SystemContext,
+    system_param::SystemParam,
 };
 
 pub struct Res<'r, R: Resource> {
@@ -9,13 +10,17 @@ pub struct Res<'r, R: Resource> {
 }
 
 impl<'r, R: Resource + 'static> SystemParam for Res<'r, R> {
+    type State = ();
     type Param<'c> = Res<'c, R>;
 
-    fn initialize(access: &mut Access) {
+    fn initialize(access: &mut Access) -> Self::State {
         access.with_read::<R>();
     }
 
-    fn get_param<'c>(context: &'c mut SystemContext<'_>) -> Self::Param<'c> {
+    fn get_param<'c>(
+        _state: &mut Self::State,
+        context: &'c mut SystemContext<'_>,
+    ) -> Self::Param<'c> {
         Res {
             data: context.app.get_resource::<R>().expect(&format!(
                 "Couldn't find resource {}",
@@ -23,6 +28,8 @@ impl<'r, R: Resource + 'static> SystemParam for Res<'r, R> {
             )),
         }
     }
+
+    fn apply<'a>(_state: Self::State, _app: &'a mut App) {}
 }
 
 impl<'r, R: Resource> Deref for Res<'r, R> {

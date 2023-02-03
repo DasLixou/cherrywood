@@ -1,4 +1,4 @@
-use std::{cell::RefCell, marker::PhantomData, rc::Rc};
+use std::{cell::RefCell, rc::Rc};
 
 use crate::{access::Access, system_context::SystemContext, system_param::SystemParam};
 
@@ -16,10 +16,10 @@ pub trait DescribedSystem<Out> {
 
 pub type BoxedDescribedSystem<Out = ()> = Rc<RefCell<dyn DescribedSystem<Out>>>;
 
-pub struct FunctionSystem<F, Params> {
+pub struct FunctionSystem<F, Params: SystemParam> {
     system: F,
     access: Access,
-    phantom: PhantomData<Params>,
+    state: Option<Params::State>,
 }
 
 impl<F, Out, Params: SystemParam + 'static> IntoDescribedSystem<Out, Params> for F
@@ -32,7 +32,7 @@ where
         FunctionSystem {
             system: self,
             access: Access::new(),
-            phantom: PhantomData,
+            state: None,
         }
     }
 }
@@ -42,18 +42,24 @@ where
     F: SystemParamFunction<Out, Params> + 'static,
 {
     fn initialize(&mut self) {
-        F::initialize(&mut self.access);
+        self.state = Some(F::initialize(&mut self.access));
     }
 
     fn run<'c>(&mut self, context: SystemContext<'c>) -> Out {
-        SystemParamFunction::run(&mut self.system, context)
+        SystemParamFunction::run(
+            &mut self.system,
+            self.state
+                .as_mut()
+                .expect("State from System was uninitialized!"),
+            context,
+        )
     }
 }
 
 pub(crate) trait SystemParamFunction<Out, Params: SystemParam>: 'static {
-    fn initialize(access: &mut Access)
+    fn initialize(access: &mut Access) -> Params::State
     where
         Self: Sized;
 
-    fn run<'c>(&mut self, context: SystemContext<'c>) -> Out;
+    fn run<'c>(&mut self, state: &mut Params::State, context: SystemContext<'c>) -> Out;
 }

@@ -1,16 +1,23 @@
 use crate::access::Access;
+use crate::app::App;
 use crate::system::SystemParamFunction;
 use crate::system_context::SystemContext;
 use crate::system_param::SystemParam;
 
 impl SystemParam for () {
+    type State = ();
     type Param<'c> = ();
 
-    fn initialize(_access: &mut Access) {}
+    fn initialize(_access: &mut Access) -> Self::State {}
 
-    fn get_param<'c>(_context: &mut SystemContext<'c>) -> Self::Param<'c> {
+    fn get_param<'c>(
+        _state: &mut Self::State,
+        _context: &mut SystemContext<'c>,
+    ) -> Self::Param<'c> {
         ()
     }
+
+    fn apply<'a>(_state: Self::State, _app: &'a mut App) {}
 }
 
 impl<F> SystemParamFunction<(), ()> for F
@@ -23,7 +30,7 @@ where
     {
     }
 
-    fn run<'c>(&mut self, _context: SystemContext<'c>) -> () {
+    fn run<'c>(&mut self, _state: &mut (), _context: SystemContext<'c>) -> () {
         self();
         ()
     }
@@ -32,21 +39,28 @@ where
 macro_rules! impl_system_param_fn {
     ($(($generic:ident, $index:tt))+) => {
         impl<$($generic: SystemParam),*> SystemParam for ($($generic),*,) {
+            type State = ($($generic::State),*,);
             type Param<'c> = ($($generic::Param<'c>),*,);
 
-            fn initialize(access: &mut Access) {
-                $(
-                    <$generic as SystemParam>::initialize(access);
-                )*
+            fn initialize(access: &mut Access) -> Self::State {
+                ($(
+                    <$generic as SystemParam>::initialize(access)
+                ),*,)
             }
 
-            fn get_param<'c>(context: &'c mut SystemContext<'_>) -> Self::Param<'c> {
+            fn get_param<'c>(state: &mut Self::State, context: &'c mut SystemContext<'_>) -> Self::Param<'c> {
                 ($(
-                    <$generic as SystemParam>::get_param(unsafe {
+                    <$generic as SystemParam>::get_param(&mut state.$index, unsafe {
                         // SAFETY: we already checked for conflicts in `initialize`
                         &mut *((&mut *context) as *mut SystemContext)
                     })
                 ),*,)
+            }
+
+            fn apply<'a>(state: Self::State, app: &'a mut App) {
+                $(
+                    <$generic as SystemParam>::apply(state.$index, app);
+                )*
             }
         }
 
@@ -54,15 +68,15 @@ macro_rules! impl_system_param_fn {
         where
             Func: Fn($($generic),*) -> Out + Fn($($generic::Param<'_>),*) -> Out + 'static,
         {
-            fn initialize(access: &mut Access)
+            fn initialize(access: &mut Access) -> <($($generic),*,) as SystemParam>::State
             where
                 Self: Sized
             {
-                <($($generic),*,) as SystemParam>::initialize(access);
+                <($($generic),*,) as SystemParam>::initialize(access)
             }
 
-            fn run<'c>(&mut self, mut context: SystemContext<'c>) -> Out {
-                let params = <($($generic),*,) as SystemParam>::get_param(&mut context);
+            fn run<'c>(&mut self, mut state: &mut <($($generic),*,) as SystemParam>::State, mut context: SystemContext<'c>) -> Out {
+                let params = <($($generic),*,) as SystemParam>::get_param(&mut state, &mut context);
                 self($(
                     params.$index
                 ),*)
