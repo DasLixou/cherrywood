@@ -16,3 +16,14 @@ impl Event for PointerClick {
         Clone::clone(&self)
     }
 }
+
+#[derive(Clone)]
+pub struct OnClick(pub Point);
+impl Event for OnClick {
+    fn clone(&self) -> Self
+    where
+        Self: Sized,
+    {
+        Clone::clone(&self)
+    }
+}

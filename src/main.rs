@@ -1,8 +1,8 @@
 use cherrywood::{
     app::App,
-    event::PointerClick,
+    event::{OnClick, PointerClick},
     math::point::Point,
-    params::{event_catcher::EventCatcher, res::Res, res_mut::ResMut},
+    params::{event_catcher::EventCatcher, event_thrower::EventThrower, res::Res, res_mut::ResMut},
     resource::Resource,
     system::IntoDescribedSystem,
     widgets::{button::Button, label::Label, stack::Stack},
@@ -28,8 +28,9 @@ fn main() {
     app.dispatch_event(PointerClick(Point(1, 2)));
 }
 
-fn pointer_click(event: EventCatcher<PointerClick>) {
+fn pointer_click(event: EventCatcher<PointerClick>, mut on_click: EventThrower<OnClick>) {
     println!("pointer clicked at: {:?}", event.0);
+    on_click += OnClick(event.0.clone());
 }
 
 fn increment_counter(mut counter: ResMut<Counter>) {
