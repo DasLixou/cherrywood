@@ -12,17 +12,20 @@ struct Counter(i32);
 impl Resource for Counter {}
 
 fn main() {
-    let mut app = App::new(Stack::new().with_children((
-        Button::new().subscribe_event::<PointerClick, _>((
-            pointer_click.into_described(),
-            increment_counter.into_described(),
-            send_request.into_described(),
+    let mut app = App::new(
+        Stack::new().with_children((
+            Button::new()
+                .subscribe_event::<PointerClick, _>(pointer_click.into_described())
+                .subscribe_event::<OnClick, _>((
+                    increment_counter.into_described(),
+                    send_request.into_described(),
+                )),
+            Label::new().with_content(|counter: Res<Counter>| {
+                println!("Counter changed.");
+                format!("Counter: {}", counter.0)
+            }),
         )),
-        Label::new().with_content(|counter: Res<Counter>| {
-            println!("Counter changed.");
-            format!("Counter: {}", counter.0)
-        }),
-    )));
+    );
     app.insert_resource(Counter(0));
     app.dispatch_event(Event::new(PointerClick(Point(1, 2)), EventKind::Falling));
     app.dispatch_event(Event::new(PointerClick(Point(1, 2)), EventKind::Falling));
