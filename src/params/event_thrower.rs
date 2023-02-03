@@ -1,14 +1,17 @@
 use std::ops::AddAssign;
 
 use crate::{
-    access::Access, event::Event, system_context::SystemContext, system_param::SystemParam,
+    access::Access,
+    event::{Event, EventKind, EventMessage},
+    system_context::SystemContext,
+    system_param::SystemParam,
 };
 
-pub struct EventThrower<E: Event> {
-    events: Vec<E>,
+pub struct EventThrower<E: EventMessage> {
+    events: Vec<Event<E>>,
 }
 
-impl<E: Event + 'static> SystemParam for EventThrower<E> {
+impl<E: EventMessage + 'static> SystemParam for EventThrower<E> {
     type Param<'c> = EventThrower<E>;
 
     fn initialize(_access: &mut Access) {
@@ -20,8 +23,8 @@ impl<E: Event + 'static> SystemParam for EventThrower<E> {
     }
 }
 
-impl<E: Event> AddAssign<E> for EventThrower<E> {
-    fn add_assign(&mut self, rhs: E) {
-        self.events.push(rhs);
+impl<E: EventMessage> AddAssign<(E, EventKind)> for EventThrower<E> {
+    fn add_assign(&mut self, rhs: (E, EventKind)) {
+        self.events.push(Event::new(rhs.0, rhs.1));
     }
 }

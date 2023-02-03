@@ -1,6 +1,6 @@
 use cherrywood::{
     app::App,
-    event::{OnClick, PointerClick},
+    event::{Event, EventKind, OnClick, PointerClick},
     math::point::Point,
     params::{event_catcher::EventCatcher, event_thrower::EventThrower, res::Res, res_mut::ResMut},
     resource::Resource,
@@ -24,13 +24,13 @@ fn main() {
         }),
     )));
     app.insert_resource(Counter(0));
-    app.dispatch_event(PointerClick(Point(1, 2)));
-    app.dispatch_event(PointerClick(Point(1, 2)));
+    app.dispatch_event(Event::new(PointerClick(Point(1, 2)), EventKind::Falling));
+    app.dispatch_event(Event::new(PointerClick(Point(1, 2)), EventKind::Falling));
 }
 
 fn pointer_click(event: EventCatcher<PointerClick>, mut on_click: EventThrower<OnClick>) {
     println!("pointer clicked at: {:?}", event.0);
-    on_click += OnClick(event.0.clone());
+    on_click += (OnClick(event.0.clone()), EventKind::Bubble);
 }
 
 fn increment_counter(mut counter: ResMut<Counter>) {

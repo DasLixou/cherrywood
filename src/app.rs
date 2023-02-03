@@ -1,7 +1,7 @@
 use std::{any::TypeId, cell::RefCell, collections::VecDeque, rc::Rc};
 
 use crate::{
-    event::Event,
+    event::{Event, EventMessage},
     holding_ptr::HoldingPtr,
     resource::Resource,
     resources::Resources,
@@ -38,7 +38,7 @@ impl App {
             .map(|raw| unsafe { &mut *raw.cast::<R>() })
     }
 
-    pub fn dispatch_event<E: Event + 'static>(&mut self, event: E) {
+    pub fn dispatch_event<E: EventMessage + 'static>(&mut self, event: Event<E>) {
         let mut deque = VecDeque::new();
         deque.push_back(self.widget.clone());
         while let Some(widget) = deque.pop_front() {

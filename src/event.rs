@@ -1,6 +1,33 @@
 use crate::math::point::Point;
 
-pub trait Event {
+pub struct Event<E: EventMessage> {
+    pub(crate) message: E,
+    kind: EventKind,
+}
+
+impl<E: EventMessage> Event<E> {
+    pub fn new(message: E, kind: EventKind) -> Self {
+        Self { message, kind }
+    }
+}
+
+impl<E: EventMessage> Clone for Event<E> {
+    fn clone(&self) -> Self {
+        Self {
+            message: self.message.clone(),
+            kind: self.kind.clone(),
+        }
+    }
+}
+
+#[derive(Clone)]
+pub enum EventKind {
+    Falling,
+    Climbing,
+    Bubble,
+}
+
+pub trait EventMessage {
     fn clone(&self) -> Self
     where
         Self: Sized;
@@ -8,7 +35,7 @@ pub trait Event {
 
 #[derive(Clone)]
 pub struct PointerClick(pub Point);
-impl Event for PointerClick {
+impl EventMessage for PointerClick {
     fn clone(&self) -> Self
     where
         Self: Sized,
@@ -19,7 +46,7 @@ impl Event for PointerClick {
 
 #[derive(Clone)]
 pub struct OnClick(pub Point);
-impl Event for OnClick {
+impl EventMessage for OnClick {
     fn clone(&self) -> Self
     where
         Self: Sized,

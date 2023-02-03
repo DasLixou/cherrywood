@@ -1,7 +1,7 @@
 use std::any::TypeId;
 
 use crate::{
-    event::Event,
+    event::EventMessage,
     event_rack::EventRack,
     system::BoxedDescribedSystem,
     system_batch::SystemBatch,
@@ -19,7 +19,10 @@ impl Button {
         }
     }
 
-    pub fn subscribe_event<E: Event + 'static, B: SystemBatch>(mut self, systems: B) -> Self {
+    pub fn subscribe_event<E: EventMessage + 'static, B: SystemBatch>(
+        mut self,
+        systems: B,
+    ) -> Self {
         self.event_rack.subscribe(TypeId::of::<E>(), systems);
         self
     }
