@@ -39,6 +39,7 @@ impl App {
     }
 
     pub fn dispatch_event<E: EventMessage + 'static>(&mut self, event: Event<E>) {
+        // TODO: actually use `EventKind` in logic
         let mut deque = VecDeque::new();
         deque.push_back(self.widget.clone());
         let mut called_systems = Vec::new();
@@ -55,7 +56,7 @@ impl App {
             deque.extend(widget.borrow_mut().children_mut());
         }
         for sys in called_systems {
-            sys.borrow_mut().apply(self);
+            sys.borrow_mut().apply(self); // TODO: when the system is borrowed, it can't call itself with dispatch_event - think about that
         }
     }
 }
