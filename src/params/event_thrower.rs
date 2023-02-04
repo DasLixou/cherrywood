@@ -33,9 +33,7 @@ impl<'w, E: EventMessage + 'static> SystemParam for EventThrower<'w, E> {
     }
 
     fn apply<'a>(state: Self::State, app: &'a mut App) {
-        for event in state {
-            app.queue_event(event);
-        }
+        app.queue_events(state);
     }
 }
 

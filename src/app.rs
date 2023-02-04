@@ -1,6 +1,7 @@
 use std::{cell::RefCell, collections::VecDeque, rc::Rc};
 
 use crate::{
+    batch::event::EventBatch,
     event::Event,
     resource::Resource,
     resources::Resources,
@@ -41,8 +42,8 @@ impl App {
             .map(|raw| unsafe { &mut *raw.cast::<R>() })
     }
 
-    pub fn queue_event(&mut self, event: Event) {
-        self.event_queue.push(event);
+    pub fn queue_events(&mut self, events: impl EventBatch) {
+        self.event_queue.extend(events.into_iter());
         self.request_events = true;
     }
 

@@ -1,6 +1,8 @@
 mod impls;
 pub use impls::*;
 
+pub mod event;
+
 #[macro_export]
 macro_rules! method_arity {
     ($($arg:tt)*) => {

@@ -27,9 +27,9 @@ fn main() {
         )),
     );
     app.insert_resource(Counter(0));
-    app.queue_event(Event::new(PointerClick(Point(1, 2)), EventKind::Root));
+    app.queue_events(Event::new(PointerClick(Point(1, 2)), EventKind::Root));
     app.handle();
-    app.queue_event(Event::new(PointerClick(Point(1, 2)), EventKind::Root));
+    app.queue_events(Event::new(PointerClick(Point(1, 2)), EventKind::Root));
     app.handle();
 }
 
