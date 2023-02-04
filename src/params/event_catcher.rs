@@ -8,6 +8,7 @@ use crate::{
     system_param::SystemParam,
 };
 
+// TODO: add try() and catch() methods for this. catch will block from going further in other widgets
 pub struct EventCatcher<E: EventMessage> {
     data: Event,
     phantom: PhantomData<E>,

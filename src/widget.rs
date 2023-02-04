@@ -6,6 +6,7 @@ use std::{
 
 use crate::system::BoxedDescribedSystem;
 
+// TODO: add parent, because with Rc we now can ^^
 pub trait Widget {
     fn fetch_events(&mut self, event_type: TypeId) -> Vec<BoxedDescribedSystem>;
 
