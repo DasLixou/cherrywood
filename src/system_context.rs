@@ -1,4 +1,4 @@
-use crate::{app::App, holding_ptr::HoldingPtr};
+use crate::{app::App, ptr::holding_ptr::HoldingPtr};
 
 pub struct SystemContext<'c> {
     pub app: &'c mut App,

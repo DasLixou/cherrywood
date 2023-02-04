@@ -2,7 +2,7 @@ use std::any::TypeId;
 
 use hashbrown::HashMap;
 
-use crate::{holding_ptr::HoldingPtr, resource::Resource};
+use crate::{ptr::holding_ptr::HoldingPtr, resource::Resource};
 
 pub struct Resources {
     data: HashMap<TypeId, HoldingPtr>,

@@ -2,7 +2,7 @@ use std::{any::TypeId, cell::RefCell, collections::VecDeque, rc::Rc};
 
 use crate::{
     event::{Event, EventMessage},
-    holding_ptr::HoldingPtr,
+    ptr::holding_ptr::HoldingPtr,
     resource::Resource,
     resources::Resources,
     system_context::SystemContext,
