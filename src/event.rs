@@ -19,6 +19,7 @@ impl Event {
 
 #[derive(Clone)]
 pub enum EventKind {
+    Root,
     Falling,
     Climbing,
     Bubble,
