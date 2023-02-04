@@ -2,7 +2,7 @@ use std::any::TypeId;
 
 use hashbrown::HashMap;
 
-use crate::{system::BoxedDescribedSystem, system_batch::SystemBatch};
+use crate::{batch::SystemBatch, system::BoxedDescribedSystem};
 
 pub struct EventRack {
     systems: HashMap<TypeId, Vec<BoxedDescribedSystem>>,

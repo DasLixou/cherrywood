@@ -1,9 +1,9 @@
 use std::any::TypeId;
 
 use crate::{
+    batch::WidgetBatch,
     system::BoxedDescribedSystem,
     widget::{BoxedWidget, Widget},
-    widget_batch::WidgetBatch,
 };
 
 pub struct Stack {

@@ -1,10 +1,10 @@
 use std::any::TypeId;
 
 use crate::{
+    batch::SystemBatch,
     event::EventMessage,
     event_rack::EventRack,
     system::BoxedDescribedSystem,
-    system_batch::SystemBatch,
     widget::{BoxedWidget, Widget},
 };
 
