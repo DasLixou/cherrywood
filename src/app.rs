@@ -2,7 +2,7 @@ use std::{cell::RefCell, collections::VecDeque, rc::Rc};
 
 use crate::{
     batch::event::EventBatch,
-    event::Event,
+    event::{Event, EventKind},
     resource::Resource,
     resources::Resources,
     system_context::SystemContext,
@@ -50,11 +50,18 @@ impl App {
     pub fn handle(&mut self) {
         while self.request_events {
             self.request_events = false;
-            // TODO: actually use `EventKind` in logic
-            while let Some(event) = self.event_queue.pop() {
+            while let Some(mut event) = self.event_queue.pop() {
+                if let EventKind::Root = &event.kind {
+                    event.kind = EventKind::FallingFrom(self.widget.clone())
+                }
                 let mut deque = VecDeque::new();
                 let mut called_systems = Vec::new();
-                deque.push_back(self.widget.clone());
+                match &event.kind {
+                    EventKind::FallingFrom(w) | EventKind::BubbleIn(w) => {
+                        deque.push_back(w.clone())
+                    }
+                    _ => panic!("Unexpanded EventKind"),
+                }
                 while let Some(widget) = deque.pop_front() {
                     let mut systems = widget.borrow_mut().fetch_events(event.message.type_id());
                     for sys in &mut systems {
@@ -66,10 +73,16 @@ impl App {
                         });
                         called_systems.push(sys.to_owned());
                     }
-                    deque.extend(widget.borrow_mut().children_mut());
+                    match &event.kind {
+                        EventKind::FallingFrom(_) => {
+                            deque.extend(widget.borrow_mut().children_mut())
+                        }
+                        EventKind::BubbleIn(_) => {}
+                        _ => panic!("Unexpanded EventKind"),
+                    }
                 }
                 for sys in called_systems {
-                    sys.borrow_mut().apply(self); // TODO: when the system is borrowed, it can't call itself with dispatch_event - think about that
+                    sys.borrow_mut().apply(self);
                 }
             }
         }
