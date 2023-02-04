@@ -1,21 +1,18 @@
-use crate::math::point::Point;
+use dyn_clone::DynClone;
 
-pub struct Event<E: EventMessage> {
-    pub(crate) message: E,
-    kind: EventKind,
+use crate::{as_any::AsAny, math::point::Point};
+
+#[derive(Clone)]
+pub struct Event {
+    pub(crate) message: Box<dyn EventMessage>,
+    pub(crate) kind: EventKind,
 }
 
-impl<E: EventMessage> Event<E> {
-    pub fn new(message: E, kind: EventKind) -> Self {
-        Self { message, kind }
-    }
-}
-
-impl<E: EventMessage> Clone for Event<E> {
-    fn clone(&self) -> Self {
+impl Event {
+    pub fn new<E: EventMessage + 'static>(message: E, kind: EventKind) -> Self {
         Self {
-            message: self.message.clone(),
-            kind: self.kind.clone(),
+            message: Box::new(message),
+            kind,
         }
     }
 }
@@ -27,30 +24,14 @@ pub enum EventKind {
     Bubble,
 }
 
-pub trait EventMessage {
-    fn clone(&self) -> Self
-    where
-        Self: Sized;
-}
+pub trait EventMessage: DynClone + AsAny {}
+
+dyn_clone::clone_trait_object!(EventMessage);
 
 #[derive(Clone)]
 pub struct PointerClick(pub Point);
-impl EventMessage for PointerClick {
-    fn clone(&self) -> Self
-    where
-        Self: Sized,
-    {
-        Clone::clone(&self)
-    }
-}
+impl EventMessage for PointerClick {}
 
 #[derive(Clone)]
 pub struct OnClick(pub Point);
-impl EventMessage for OnClick {
-    fn clone(&self) -> Self
-    where
-        Self: Sized,
-    {
-        Clone::clone(&self)
-    }
-}
+impl EventMessage for OnClick {}

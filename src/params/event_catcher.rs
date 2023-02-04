@@ -1,4 +1,4 @@
-use std::ops::Deref;
+use std::{marker::PhantomData, ops::Deref};
 
 use crate::{
     access::Access,
@@ -9,7 +9,8 @@ use crate::{
 };
 
 pub struct EventCatcher<E: EventMessage> {
-    data: Event<E>,
+    data: Event,
+    phantom: PhantomData<E>,
 }
 
 impl<E: EventMessage + 'static> SystemParam for EventCatcher<E> {
@@ -22,12 +23,8 @@ impl<E: EventMessage + 'static> SystemParam for EventCatcher<E> {
 
     fn get_param<'c>(_state: &mut Self::State, context: &mut SystemContext<'c>) -> Self::Param<'c> {
         EventCatcher {
-            data: (context
-                .event
-                .as_ref()
-                .unwrap()
-                .borrow_as::<Event<E>>()
-                .clone()),
+            data: context.event.as_ref().unwrap().clone(),
+            phantom: PhantomData,
         }
     }
 
@@ -38,6 +35,10 @@ impl<E: EventMessage> Deref for EventCatcher<E> {
     type Target = E;
 
     fn deref(&self) -> &Self::Target {
-        &self.data.message
+        self.data
+            .message
+            .as_any()
+            .downcast_ref()
+            .expect("Expected other type of EventMessage than given!")
     }
 }

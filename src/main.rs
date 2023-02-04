@@ -27,8 +27,10 @@ fn main() {
         )),
     );
     app.insert_resource(Counter(0));
-    app.dispatch_event(Event::new(PointerClick(Point(1, 2)), EventKind::Falling));
-    app.dispatch_event(Event::new(PointerClick(Point(1, 2)), EventKind::Falling));
+    app.queue_event(Event::new(PointerClick(Point(1, 2)), EventKind::Falling));
+    app.handle();
+    app.queue_event(Event::new(PointerClick(Point(1, 2)), EventKind::Falling));
+    app.handle();
 }
 
 fn pointer_click(event: EventCatcher<PointerClick>, mut on_click: EventThrower<OnClick>) {

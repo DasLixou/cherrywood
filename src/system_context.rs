@@ -1,6 +1,6 @@
-use crate::{app::App, ptr::holding_ptr::HoldingPtr};
+use crate::{app::App, event::Event};
 
 pub struct SystemContext<'c> {
     pub app: &'c mut App,
-    pub event: Option<HoldingPtr>,
+    pub event: Option<Event>,
 }
