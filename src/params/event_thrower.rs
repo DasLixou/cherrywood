@@ -6,11 +6,13 @@ use crate::{
     event::{Event, EventKind, EventMessage},
     system_context::SystemContext,
     system_param::SystemParam,
+    widget::BoxedWidget,
 };
 
 pub struct EventThrower<'w, E: EventMessage> {
     events: &'w mut Vec<Event>,
     phantom: PhantomData<E>,
+    widget: &'w BoxedWidget,
 }
 
 impl<'w, E: EventMessage + 'static> SystemParam for EventThrower<'w, E> {
@@ -24,11 +26,12 @@ impl<'w, E: EventMessage + 'static> SystemParam for EventThrower<'w, E> {
 
     fn get_param<'c>(
         state: &'c mut Self::State,
-        _context: &'c mut SystemContext<'_>,
+        context: &'c mut SystemContext<'_>,
     ) -> Self::Param<'c> {
         EventThrower {
             events: state,
             phantom: PhantomData,
+            widget: context.widget,
         }
     }
 
@@ -39,6 +42,13 @@ impl<'w, E: EventMessage + 'static> SystemParam for EventThrower<'w, E> {
 
 impl<'w, E: EventMessage + 'static> AddAssign<(E, EventKind)> for EventThrower<'w, E> {
     fn add_assign(&mut self, rhs: (E, EventKind)) {
-        self.events.push(Event::new(rhs.0, rhs.1));
+        let kind = match rhs.1 {
+            EventKind::Root => EventKind::Root,
+            EventKind::Falling => EventKind::FallingFrom(self.widget.clone()),
+            EventKind::Climbing => todo!(),
+            EventKind::Bubble => EventKind::BubbleIn(self.widget.clone()),
+            k => k,
+        };
+        self.events.push(Event::new(rhs.0, kind));
     }
 }
