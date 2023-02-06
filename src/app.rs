@@ -2,25 +2,32 @@ use std::{cell::RefCell, collections::VecDeque, rc::Rc};
 
 use crate::{
     batch::event::EventBatch,
+    children::Children,
     event::{Event, EventKind},
     resource::Resource,
     resources::Resources,
     system_context::SystemContext,
     widget::{BoxedWidget, Widget},
+    widget_handle::WidgetHandle,
+    widgets::main::Main,
 };
 
 pub struct App {
     pub(crate) resources: Resources,
-    widget: BoxedWidget,
+    widget: WidgetHandle<Main>,
     request_events: bool,
     event_queue: Vec<Event>,
 }
 
 impl App {
-    pub fn new<W: Widget + 'static>(widget: W) -> Self {
+    pub fn new<W: Widget + 'static>(
+        widget: impl FnOnce(BoxedWidget, &mut Children) -> Rc<RefCell<W>>,
+    ) -> Self {
+        let mut main = Main::new();
+        main.with_child(widget);
         Self {
             resources: Resources::new(),
-            widget: Rc::new(RefCell::new(widget)),
+            widget: main,
             request_events: false,
             event_queue: Vec::new(),
         }
@@ -52,7 +59,7 @@ impl App {
             self.request_events = false;
             while let Some(mut event) = self.event_queue.pop() {
                 if let EventKind::Root = &event.kind {
-                    event.kind = EventKind::FallingFrom(self.widget.clone())
+                    event.kind = EventKind::FallingFrom(self.widget.finish())
                 }
                 let mut deque = VecDeque::new();
                 let mut called_systems = Vec::new();
@@ -75,7 +82,7 @@ impl App {
                     }
                     match &event.kind {
                         EventKind::FallingFrom(_) => {
-                            deque.extend(widget.borrow_mut().children_mut())
+                            deque.extend(widget.borrow_mut().children_mut().iter())
                         }
                         EventKind::BubbleIn(_) => {}
                         _ => panic!("Unexpanded EventKind"),

@@ -4,15 +4,14 @@ use std::{
     rc::Rc,
 };
 
-use crate::system::BoxedDescribedSystem;
+use crate::{children::Children, system::BoxedDescribedSystem};
 
-// TODO: add parent, because with Rc we now can ^^
 pub trait Widget {
     fn fetch_events(&mut self, event_type: TypeId) -> Vec<BoxedDescribedSystem>;
 
-    fn parent(&mut self) -> Option<BoxedWidget>;
+    fn parent(&mut self) -> BoxedWidget;
 
-    fn children_mut(&mut self) -> Vec<BoxedWidget>;
+    fn children_mut(&mut self) -> Children;
 
     fn as_any(&self) -> &dyn Any;
     fn as_any_mut(&mut self) -> &mut dyn Any;

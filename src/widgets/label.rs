@@ -1,30 +1,34 @@
 use std::{any::TypeId, cell::RefCell, rc::Rc};
 
 use crate::{
+    children::Children,
     system::{BoxedDescribedSystem, IntoDescribedSystem},
     system_param::SystemParam,
     widget::{BoxedWidget, Widget},
+    widget_handle::WidgetHandle,
 };
 
 pub struct Label {
-    pub content: Option<BoxedDescribedSystem<String>>,
-    parent: Option<BoxedWidget>,
+    content: Option<BoxedDescribedSystem<String>>,
+    parent: BoxedWidget,
 }
 
 impl Label {
-    pub fn new() -> Self {
-        Self {
+    pub fn new(parent: BoxedWidget, children: &mut Children) -> WidgetHandle<Self> {
+        children.add(Self {
             content: None,
-            parent: None,
-        }
+            parent,
+        })
     }
+}
 
+impl WidgetHandle<Label> {
     pub fn with_content<F: IntoDescribedSystem<String, Params>, Params: SystemParam>(
-        mut self,
+        &mut self,
         system: F,
-    ) -> Self {
+    ) -> &mut Self {
         let system = Rc::new(RefCell::new(system.into_described()));
-        self.content = Some(system);
+        self.data.borrow_mut().content = Some(system);
         self
     }
 }
@@ -34,12 +38,12 @@ impl Widget for Label {
         vec![]
     }
 
-    fn parent(&mut self) -> Option<BoxedWidget> {
+    fn parent(&mut self) -> BoxedWidget {
         self.parent.clone()
     }
 
-    fn children_mut(&mut self) -> Vec<BoxedWidget> {
-        vec![]
+    fn children_mut(&mut self) -> Children {
+        Children::NONE
     }
 
     fn as_any(&self) -> &dyn std::any::Any {

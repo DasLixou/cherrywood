@@ -1,44 +1,42 @@
-use std::any::TypeId;
+use std::{any::TypeId, cell::RefCell, rc::Rc};
 
 use crate::{
-    batch::WidgetBatch,
     children::Children,
     system::BoxedDescribedSystem,
     widget::{BoxedWidget, Widget},
     widget_handle::WidgetHandle,
 };
 
-pub struct Stack {
+pub(crate) struct Main {
     children: Children,
-    parent: BoxedWidget,
 }
 
-impl Stack {
-    pub fn new(parent: BoxedWidget, children: &mut Children) -> WidgetHandle<Self> {
-        children.add(Self {
+impl Main {
+    pub(crate) fn new() -> WidgetHandle<Self> {
+        WidgetHandle::new(Self {
             children: Children::new(),
-            parent,
         })
     }
 }
 
-impl WidgetHandle<Stack> {
-    pub fn with_children<B: WidgetBatch>(
+impl WidgetHandle<Main> {
+    pub fn with_child<W: Widget + 'static>(
         &mut self,
-        children: impl FnOnce(BoxedWidget, &mut Children) -> B,
+        child: impl FnOnce(BoxedWidget, &mut Children) -> Rc<RefCell<W>>,
     ) -> &mut Self {
-        children(self.data.clone(), &mut self.data.borrow_mut().children);
+        let child = child(self.data.clone(), &mut self.data.borrow_mut().children);
+        self.data.borrow_mut().children.add_directly(child);
         self
     }
 }
 
-impl Widget for Stack {
+impl Widget for Main {
     fn fetch_events(&mut self, _event_type: TypeId) -> Vec<BoxedDescribedSystem> {
         vec![]
     }
 
     fn parent(&mut self) -> BoxedWidget {
-        self.parent.clone()
+        unimplemented!()
     }
 
     fn children_mut(&mut self) -> Children {
