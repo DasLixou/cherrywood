@@ -30,10 +30,6 @@ impl Children {
         })
     }
 
-    pub(crate) fn add_directly<W: Widget + 'static>(&mut self, child: Rc<RefCell<W>>) {
-        self.children.push(child);
-    }
-
     pub fn iter(&mut self) -> impl Iterator<Item = BoxedWidget> + '_ {
         self.children.iter().map(|rc| rc.clone())
     }

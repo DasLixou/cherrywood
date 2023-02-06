@@ -12,7 +12,7 @@ use crate::{
 pub struct Button {
     pub event_rack: EventRack,
     parent: Weak<RefCell<dyn Widget>>,
-    me: Weak<RefCell<dyn Widget>>,
+    me: Weak<RefCell<Self>>,
 }
 
 impl Button {
@@ -36,6 +36,13 @@ impl Button {
 impl Widget for Button {
     fn fetch_events(&mut self, event_type: TypeId) -> Vec<BoxedDescribedSystem> {
         self.event_rack.fetch(event_type)
+    }
+
+    fn finish(&self) -> Rc<RefCell<Self>>
+    where
+        Self: Sized,
+    {
+        self.me.upgrade().unwrap()
     }
 
     fn parent(&mut self) -> Weak<RefCell<dyn Widget>> {

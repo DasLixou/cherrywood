@@ -15,7 +15,7 @@ use crate::{
 pub struct Label {
     content: Option<BoxedDescribedSystem<String>>,
     parent: Weak<RefCell<dyn Widget>>,
-    me: Weak<RefCell<dyn Widget>>,
+    me: Weak<RefCell<Self>>,
 }
 
 impl Label {
@@ -40,6 +40,13 @@ impl Label {
 impl Widget for Label {
     fn fetch_events(&mut self, _event_type: TypeId) -> Vec<BoxedDescribedSystem> {
         vec![]
+    }
+
+    fn finish(&self) -> Rc<RefCell<Self>>
+    where
+        Self: Sized,
+    {
+        self.me.upgrade().unwrap()
     }
 
     fn parent(&mut self) -> Weak<RefCell<dyn Widget>> {

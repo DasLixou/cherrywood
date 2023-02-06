@@ -12,7 +12,7 @@ use crate::{
 pub struct Stack {
     children: Children,
     parent: Weak<RefCell<dyn Widget>>,
-    me: Weak<RefCell<dyn Widget>>,
+    me: Weak<RefCell<Self>>,
 }
 
 impl Stack {
@@ -39,6 +39,13 @@ impl Stack {
 impl Widget for Stack {
     fn fetch_events(&mut self, _event_type: TypeId) -> Vec<BoxedDescribedSystem> {
         vec![]
+    }
+
+    fn finish(&self) -> Rc<RefCell<Self>>
+    where
+        Self: Sized,
+    {
+        self.me.upgrade().unwrap()
     }
 
     fn parent(&mut self) -> Weak<RefCell<dyn Widget>> {

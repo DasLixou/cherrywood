@@ -4,6 +4,7 @@ use cherrywood::{
     math::point::Point,
     params::{event_catcher::EventCatcher, event_thrower::EventThrower, res_mut::ResMut},
     resource::Resource,
+    widget::Widget,
     widgets::stack::Stack,
 };
 
@@ -11,11 +12,7 @@ struct Counter(i32);
 impl Resource for Counter {}
 
 fn main() {
-    let mut app = App::new(|cx| {
-        let stack = Stack::new(cx);
-        stack.borrow_mut().with_children(|_cx| {});
-        stack
-    });
+    let mut app = App::new(|cx| Stack::new(cx).borrow_mut().with_children(|_cx| {}).finish());
     app.insert_resource(Counter(0));
     app.queue_events(Event::new(PointerClick(Point(1, 2)), EventKind::Root));
     app.handle();
