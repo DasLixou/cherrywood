@@ -23,11 +23,12 @@ impl Children {
         &mut self,
         child: impl FnOnce(Weak<RefCell<W>>) -> W,
     ) -> Rc<RefCell<W>> {
-        Rc::new_cyclic(|ptr| {
+        let rc = Rc::new_cyclic(|ptr| {
             let widget = child(ptr.clone());
-            self.children.push(ptr.upgrade().unwrap());
             RefCell::new(widget)
-        })
+        });
+        self.children.push(rc.clone());
+        rc
     }
 
     pub fn iter(&mut self) -> impl Iterator<Item = BoxedWidget> + '_ {
