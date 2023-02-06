@@ -8,12 +8,14 @@ use crate::{
 
 pub struct Stack {
     pub children: Vec<BoxedWidget>,
+    pub parent: Option<BoxedWidget>,
 }
 
 impl Stack {
     pub fn new() -> Self {
         Self {
             children: Vec::new(),
+            parent: None,
         }
     }
 
@@ -27,6 +29,10 @@ impl Stack {
 impl Widget for Stack {
     fn fetch_events(&mut self, _event_type: TypeId) -> Vec<BoxedDescribedSystem> {
         vec![]
+    }
+
+    fn parent(&mut self) -> Option<BoxedWidget> {
+        self.parent.clone()
     }
 
     fn children_mut(&mut self) -> Vec<BoxedWidget> {

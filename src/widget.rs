@@ -10,6 +10,8 @@ use crate::system::BoxedDescribedSystem;
 pub trait Widget {
     fn fetch_events(&mut self, event_type: TypeId) -> Vec<BoxedDescribedSystem>;
 
+    fn parent(&mut self) -> Option<BoxedWidget>;
+
     fn children_mut(&mut self) -> Vec<BoxedWidget>;
 
     fn as_any(&self) -> &dyn Any;

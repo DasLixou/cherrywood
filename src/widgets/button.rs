@@ -10,12 +10,14 @@ use crate::{
 
 pub struct Button {
     pub event_rack: EventRack,
+    parent: Option<BoxedWidget>,
 }
 
 impl Button {
     pub fn new() -> Self {
         Self {
             event_rack: EventRack::new(),
+            parent: None,
         }
     }
 
@@ -31,6 +33,10 @@ impl Button {
 impl Widget for Button {
     fn fetch_events(&mut self, event_type: TypeId) -> Vec<BoxedDescribedSystem> {
         self.event_rack.fetch(event_type)
+    }
+
+    fn parent(&mut self) -> Option<BoxedWidget> {
+        self.parent.clone()
     }
 
     fn children_mut(&mut self) -> Vec<BoxedWidget> {

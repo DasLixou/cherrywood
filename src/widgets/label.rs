@@ -8,11 +8,15 @@ use crate::{
 
 pub struct Label {
     pub content: Option<BoxedDescribedSystem<String>>,
+    parent: Option<BoxedWidget>,
 }
 
 impl Label {
     pub fn new() -> Self {
-        Self { content: None }
+        Self {
+            content: None,
+            parent: None,
+        }
     }
 
     pub fn with_content<F: IntoDescribedSystem<String, Params>, Params: SystemParam>(
@@ -28,6 +32,10 @@ impl Label {
 impl Widget for Label {
     fn fetch_events(&mut self, _event_type: TypeId) -> Vec<BoxedDescribedSystem> {
         vec![]
+    }
+
+    fn parent(&mut self) -> Option<BoxedWidget> {
+        self.parent.clone()
     }
 
     fn children_mut(&mut self) -> Vec<BoxedWidget> {
