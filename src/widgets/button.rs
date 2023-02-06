@@ -1,38 +1,34 @@
-use std::any::TypeId;
+use std::{
+    any::TypeId,
+    cell::RefCell,
+    rc::{Rc, Weak},
+};
 
 use crate::{
-    batch::SystemBatch,
-    children::Children,
-    event::EventMessage,
-    event_rack::EventRack,
-    system::BoxedDescribedSystem,
-    widget::{BoxedWidget, Widget},
-    widget_handle::WidgetHandle,
+    batch::SystemBatch, children::Children, event::EventMessage, event_rack::EventRack,
+    system::BoxedDescribedSystem, widget::Widget, widget_context::WidgetContext,
 };
 
 pub struct Button {
     pub event_rack: EventRack,
-    parent: BoxedWidget,
+    parent: Weak<RefCell<dyn Widget>>,
+    me: Weak<RefCell<dyn Widget>>,
 }
 
 impl Button {
-    pub fn new(parent: BoxedWidget, children: &mut Children) -> WidgetHandle<Self> {
-        children.add(Self {
+    pub fn new<'a>(cx: WidgetContext<'a>) -> Rc<RefCell<Self>> {
+        cx.children.add(|me| Self {
             event_rack: EventRack::new(),
-            parent,
+            parent: cx.parent,
+            me,
         })
     }
-}
 
-impl WidgetHandle<Button> {
     pub fn subscribe_event<E: EventMessage + 'static, B: SystemBatch>(
         &mut self,
         systems: B,
     ) -> &mut Self {
-        self.data
-            .borrow_mut()
-            .event_rack
-            .subscribe(TypeId::of::<E>(), systems);
+        self.event_rack.subscribe(TypeId::of::<E>(), systems);
         self
     }
 }
@@ -42,7 +38,7 @@ impl Widget for Button {
         self.event_rack.fetch(event_type)
     }
 
-    fn parent(&mut self) -> BoxedWidget {
+    fn parent(&mut self) -> Weak<RefCell<dyn Widget>> {
         self.parent.clone()
     }
 

@@ -1,34 +1,38 @@
-use std::{any::TypeId, cell::RefCell, rc::Rc};
+use std::{
+    any::TypeId,
+    cell::RefCell,
+    rc::{Rc, Weak},
+};
 
 use crate::{
     children::Children,
     system::{BoxedDescribedSystem, IntoDescribedSystem},
     system_param::SystemParam,
-    widget::{BoxedWidget, Widget},
-    widget_handle::WidgetHandle,
+    widget::Widget,
+    widget_context::WidgetContext,
 };
 
 pub struct Label {
     content: Option<BoxedDescribedSystem<String>>,
-    parent: BoxedWidget,
+    parent: Weak<RefCell<dyn Widget>>,
+    me: Weak<RefCell<dyn Widget>>,
 }
 
 impl Label {
-    pub fn new(parent: BoxedWidget, children: &mut Children) -> WidgetHandle<Self> {
-        children.add(Self {
+    pub fn new(cx: WidgetContext<'_>) -> Rc<RefCell<Self>> {
+        cx.children.add(|me| Self {
             content: None,
-            parent,
+            parent: cx.parent,
+            me,
         })
     }
-}
 
-impl WidgetHandle<Label> {
     pub fn with_content<F: IntoDescribedSystem<String, Params>, Params: SystemParam>(
         &mut self,
         system: F,
     ) -> &mut Self {
         let system = Rc::new(RefCell::new(system.into_described()));
-        self.data.borrow_mut().content = Some(system);
+        self.content = Some(system);
         self
     }
 }
@@ -38,7 +42,7 @@ impl Widget for Label {
         vec![]
     }
 
-    fn parent(&mut self) -> BoxedWidget {
+    fn parent(&mut self) -> Weak<RefCell<dyn Widget>> {
         self.parent.clone()
     }
 

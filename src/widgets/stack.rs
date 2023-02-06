@@ -1,33 +1,37 @@
-use std::any::TypeId;
+use std::{
+    any::TypeId,
+    cell::RefCell,
+    rc::{Rc, Weak},
+};
 
 use crate::{
-    batch::WidgetBatch,
-    children::Children,
-    system::BoxedDescribedSystem,
-    widget::{BoxedWidget, Widget},
-    widget_handle::WidgetHandle,
+    batch::WidgetBatch, children::Children, system::BoxedDescribedSystem, widget::Widget,
+    widget_context::WidgetContext,
 };
 
 pub struct Stack {
     children: Children,
-    parent: BoxedWidget,
+    parent: Weak<RefCell<dyn Widget>>,
+    me: Weak<RefCell<dyn Widget>>,
 }
 
 impl Stack {
-    pub fn new(parent: BoxedWidget, children: &mut Children) -> WidgetHandle<Self> {
-        children.add(Self {
+    pub fn new(cx: WidgetContext<'_>) -> Rc<RefCell<Self>> {
+        cx.children.add(|me| Self {
             children: Children::new(),
-            parent,
+            parent: cx.parent,
+            me,
         })
     }
-}
 
-impl WidgetHandle<Stack> {
     pub fn with_children<B: WidgetBatch>(
         &mut self,
-        children: impl FnOnce(BoxedWidget, &mut Children) -> B,
+        children: impl FnOnce(WidgetContext<'_>) -> B,
     ) -> &mut Self {
-        children(self.data.clone(), &mut self.data.borrow_mut().children);
+        children(WidgetContext {
+            parent: self.parent.clone(),
+            children: &mut self.children,
+        });
         self
     }
 }
@@ -37,7 +41,7 @@ impl Widget for Stack {
         vec![]
     }
 
-    fn parent(&mut self) -> BoxedWidget {
+    fn parent(&mut self) -> Weak<RefCell<dyn Widget>> {
         self.parent.clone()
     }
 

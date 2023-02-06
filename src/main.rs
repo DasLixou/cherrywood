@@ -11,7 +11,11 @@ struct Counter(i32);
 impl Resource for Counter {}
 
 fn main() {
-    let mut app = App::new(|p, c| Stack::new(p, c).with_children(|_p, _c| {}).finish());
+    let mut app = App::new(|cx| {
+        let stack = Stack::new(cx);
+        stack.borrow_mut().with_children(|_cx| {});
+        stack
+    });
     app.insert_resource(Counter(0));
     app.queue_events(Event::new(PointerClick(Point(1, 2)), EventKind::Root));
     app.handle();

@@ -1,4 +1,8 @@
-use std::{cell::RefCell, collections::VecDeque, rc::Rc};
+use std::{
+    cell::RefCell,
+    collections::VecDeque,
+    rc::{Rc, Weak},
+};
 
 use crate::{
     batch::event::EventBatch,
@@ -8,26 +12,26 @@ use crate::{
     resources::Resources,
     system_context::SystemContext,
     widget::{BoxedWidget, Widget},
-    widget_handle::WidgetHandle,
-    widgets::main::Main,
+    widget_context::WidgetContext,
 };
 
 pub struct App {
     pub(crate) resources: Resources,
-    widget: WidgetHandle<Main>,
+    widget: BoxedWidget,
     request_events: bool,
     event_queue: Vec<Event>,
 }
 
 impl App {
     pub fn new<W: Widget + 'static>(
-        widget: impl FnOnce(BoxedWidget, &mut Children) -> Rc<RefCell<W>>,
+        widget: impl FnOnce(WidgetContext<'_>) -> Rc<RefCell<W>>,
     ) -> Self {
-        let mut main = Main::new();
-        main.with_child(widget);
         Self {
             resources: Resources::new(),
-            widget: main,
+            widget: widget(WidgetContext {
+                parent: Weak::<RefCell<W>>::new(),
+                children: &mut Children::NONE,
+            }),
             request_events: false,
             event_queue: Vec::new(),
         }
@@ -59,7 +63,7 @@ impl App {
             self.request_events = false;
             while let Some(mut event) = self.event_queue.pop() {
                 if let EventKind::Root = &event.kind {
-                    event.kind = EventKind::FallingFrom(self.widget.finish())
+                    event.kind = EventKind::FallingFrom(self.widget.clone())
                 }
                 let mut deque = VecDeque::new();
                 let mut called_systems = Vec::new();

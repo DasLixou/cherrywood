@@ -1,7 +1,7 @@
 use std::{
     any::{Any, TypeId},
     cell::RefCell,
-    rc::Rc,
+    rc::{Rc, Weak},
 };
 
 use crate::{children::Children, system::BoxedDescribedSystem};
@@ -9,7 +9,7 @@ use crate::{children::Children, system::BoxedDescribedSystem};
 pub trait Widget {
     fn fetch_events(&mut self, event_type: TypeId) -> Vec<BoxedDescribedSystem>;
 
-    fn parent(&mut self) -> BoxedWidget;
+    fn parent(&mut self) -> Weak<RefCell<dyn Widget>>;
 
     fn children_mut(&mut self) -> Children;
 

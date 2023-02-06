@@ -1,9 +1,9 @@
-use std::{cell::RefCell, rc::Rc};
-
-use crate::{
-    widget::{BoxedWidget, Widget},
-    widget_handle::WidgetHandle,
+use std::{
+    cell::RefCell,
+    rc::{Rc, Weak},
 };
+
+use crate::widget::{BoxedWidget, Widget};
 
 #[derive(Clone)]
 pub struct Children {
@@ -19,10 +19,15 @@ impl Children {
         }
     }
 
-    pub fn add<W: Widget + 'static>(&mut self, child: W) -> WidgetHandle<W> {
-        let mut handle = WidgetHandle::new(child);
-        self.children.push(handle.finish());
-        handle
+    pub fn add<W: Widget + 'static>(
+        &mut self,
+        child: impl FnOnce(Weak<RefCell<W>>) -> W,
+    ) -> Rc<RefCell<W>> {
+        Rc::new_cyclic(|ptr| {
+            let widget = child(ptr.clone());
+            self.children.push(ptr.upgrade().unwrap());
+            RefCell::new(widget)
+        })
     }
 
     pub(crate) fn add_directly<W: Widget + 'static>(&mut self, child: Rc<RefCell<W>>) {
