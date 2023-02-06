@@ -50,7 +50,7 @@ macro_rules! replace_expr {
     };
 }
 
-macro_rules! impl_widget_batch_tuple {
+macro_rules! impl_event_batch_tuple {
     ($(($str:path, $index:tt))+) => {
         impl EventBatch for ($($str,)+) {
             const CAPACITY: usize = method_arity!($($str)*);
@@ -66,20 +66,20 @@ macro_rules! impl_widget_batch_tuple {
     };
 }
 
-impl_widget_batch_tuple!((Event, 0));
-impl_widget_batch_tuple!((Event, 0)(Event, 1));
-impl_widget_batch_tuple!((Event, 0)(Event, 1)(Event, 2));
-impl_widget_batch_tuple!((Event, 0)(Event, 1)(Event, 2)(Event, 3));
-impl_widget_batch_tuple!((Event, 0)(Event, 1)(Event, 2)(Event, 3)(Event, 4));
-impl_widget_batch_tuple!((Event, 0)(Event, 1)(Event, 2)(Event, 3)(Event, 4)(Event, 5));
-impl_widget_batch_tuple!((Event, 0)(Event, 1)(Event, 2)(Event, 3)(Event, 4)(Event, 5)(Event, 6));
-impl_widget_batch_tuple!(
+impl_event_batch_tuple!((Event, 0));
+impl_event_batch_tuple!((Event, 0)(Event, 1));
+impl_event_batch_tuple!((Event, 0)(Event, 1)(Event, 2));
+impl_event_batch_tuple!((Event, 0)(Event, 1)(Event, 2)(Event, 3));
+impl_event_batch_tuple!((Event, 0)(Event, 1)(Event, 2)(Event, 3)(Event, 4));
+impl_event_batch_tuple!((Event, 0)(Event, 1)(Event, 2)(Event, 3)(Event, 4)(Event, 5));
+impl_event_batch_tuple!((Event, 0)(Event, 1)(Event, 2)(Event, 3)(Event, 4)(Event, 5)(Event, 6));
+impl_event_batch_tuple!(
     (Event, 0)(Event, 1)(Event, 2)(Event, 3)(Event, 4)(Event, 5)(Event, 6)(Event, 7)
 );
-impl_widget_batch_tuple!(
+impl_event_batch_tuple!(
     (Event, 0)(Event, 1)(Event, 2)(Event, 3)(Event, 4)(Event, 5)(Event, 6)(Event, 7)(Event, 8)
 );
-impl_widget_batch_tuple!(
+impl_event_batch_tuple!(
     (Event, 0)(Event, 1)(Event, 2)(Event, 3)(Event, 4)(Event, 5)(Event, 6)(Event, 7)(Event, 8)(
         Event, 9
     )

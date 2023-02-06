@@ -5,7 +5,7 @@ use std::{
 };
 
 use crate::{
-    batch::WidgetBatch, children::Children, system::BoxedDescribedSystem, widget::Widget,
+    batch::widget::WidgetBatch, children::Children, system::BoxedDescribedSystem, widget::Widget,
     widget_context::WidgetContext,
 };
 

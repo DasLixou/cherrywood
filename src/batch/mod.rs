@@ -2,6 +2,7 @@ mod impls;
 pub use impls::*;
 
 pub mod event;
+pub mod widget;
 
 #[macro_export]
 macro_rules! method_arity {
