@@ -1,19 +1,9 @@
-use std::{cell::RefCell, rc::Weak};
+use std::{cell::RefCell, marker::PhantomData, rc::Weak};
 
-use crate::{children::Children, widget::Widget};
+use crate::widget::Widget;
 
+#[derive(Clone)]
 pub struct WidgetContext<'c> {
     pub parent: Weak<RefCell<dyn Widget>>,
-    pub children: &'c mut Children,
-}
-
-impl<'c> Clone for WidgetContext<'c> {
-    fn clone(&self) -> Self {
-        Self {
-            parent: self.parent.clone(),
-            children: unsafe {
-                &mut *(self.children as *const Children as *mut Children) as &mut Children
-            },
-        }
-    }
+    pub phantom: PhantomData<&'c ()>, // TODO: Do we need it?
 }

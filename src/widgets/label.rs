@@ -20,10 +20,13 @@ pub struct Label {
 
 impl Label {
     pub fn new(cx: WidgetContext<'_>) -> Rc<RefCell<Self>> {
-        cx.children.add(|me| Self {
-            content: None,
-            parent: cx.parent,
-            me,
+        Rc::new_cyclic(|me| {
+            let widget = Self {
+                content: None,
+                parent: cx.parent,
+                me: me.clone(),
+            };
+            RefCell::new(widget)
         })
     }
 

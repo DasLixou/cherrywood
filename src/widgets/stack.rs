@@ -1,6 +1,7 @@
 use std::{
     any::TypeId,
     cell::RefCell,
+    marker::PhantomData,
     rc::{Rc, Weak},
 };
 
@@ -17,10 +18,13 @@ pub struct Stack {
 
 impl Stack {
     pub fn new(cx: WidgetContext<'_>) -> Rc<RefCell<Self>> {
-        cx.children.add(|me| Self {
-            children: Children::new(),
-            parent: cx.parent,
-            me,
+        Rc::new_cyclic(|me| {
+            let widget = Self {
+                children: Children::new(),
+                parent: cx.parent,
+                me: me.clone(),
+            };
+            RefCell::new(widget)
         })
     }
 
@@ -28,10 +32,11 @@ impl Stack {
         &mut self,
         children: impl FnOnce(WidgetContext<'_>) -> B,
     ) -> &mut Self {
-        children(WidgetContext {
+        let batch = children(WidgetContext {
             parent: self.parent.clone(),
-            children: &mut self.children,
+            phantom: PhantomData,
         });
+        self.children.extend_batch(batch);
         self
     }
 }

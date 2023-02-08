@@ -1,9 +1,4 @@
-use std::{
-    cell::RefCell,
-    rc::{Rc, Weak},
-};
-
-use crate::widget::{BoxedWidget, Widget};
+use crate::{batch::widget::WidgetBatch, widget::BoxedWidget};
 
 #[derive(Clone)]
 pub struct Children {
@@ -19,16 +14,9 @@ impl Children {
         }
     }
 
-    pub fn add<W: Widget + 'static>(
-        &mut self,
-        child: impl FnOnce(Weak<RefCell<W>>) -> W,
-    ) -> Rc<RefCell<W>> {
-        let rc = Rc::new_cyclic(|ptr| {
-            let widget = child(ptr.clone());
-            RefCell::new(widget)
-        });
-        self.children.push(rc.clone());
-        rc
+    pub fn extend_batch<B: WidgetBatch>(&mut self, batch: B) {
+        self.children.reserve(B::CAPACITY);
+        self.children.extend(batch.into_iter());
     }
 
     pub fn iter(&mut self) -> impl Iterator<Item = BoxedWidget> + '_ {

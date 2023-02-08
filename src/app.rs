@@ -1,12 +1,12 @@
 use std::{
     cell::RefCell,
     collections::VecDeque,
+    marker::PhantomData,
     rc::{Rc, Weak},
 };
 
 use crate::{
     batch::event::EventBatch,
-    children::Children,
     event::{Event, EventKind},
     resource::Resource,
     resources::Resources,
@@ -30,7 +30,7 @@ impl App {
             resources: Resources::new(),
             widget: widget(WidgetContext {
                 parent: Weak::<RefCell<W>>::new(),
-                children: &mut Children::NONE,
+                phantom: PhantomData,
             }),
             request_events: false,
             event_queue: Vec::new(),
