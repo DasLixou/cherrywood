@@ -17,7 +17,7 @@ use crate::{
 };
 
 pub struct App {
-    pub(crate) resources: Resources,
+    resources: Resources,
     widget: BoxedWidget,
     event_chan: Receiver<Event>,
     event_sender: Sender<Event>,

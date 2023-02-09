@@ -10,7 +10,7 @@ use crate::{
 };
 
 pub struct Button {
-    pub event_rack: EventRack,
+    event_rack: EventRack,
     parent: Weak<RefCell<dyn Widget>>,
     me: Weak<RefCell<Self>>,
 }
