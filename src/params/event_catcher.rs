@@ -24,7 +24,7 @@ impl<E: EventMessage + 'static> SystemParam for EventCatcher<E> {
 
     fn get_param<'c>(_state: &mut Self::State, context: &mut SystemContext<'c>) -> Self::Param<'c> {
         EventCatcher {
-            data: context.event.as_ref().unwrap().clone(),
+            data: context.event.clone(),
             phantom: PhantomData,
         }
     }

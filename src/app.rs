@@ -78,7 +78,7 @@ impl App {
                     sys.borrow_mut().initialize();
                     sys.borrow_mut().run(SystemContext {
                         app: self,
-                        event: Some(event.clone()),
+                        event: event.clone(),
                         widget: &widget,
                     });
                     called_systems.push(sys.to_owned());

@@ -29,6 +29,7 @@ fn main() {
                     Label::new(cx)
                         .borrow_mut()
                         .with_content(|counter: Res<Counter>| {
+                            // TODO: we could notify about change via events
                             println!("Counter changed.");
                             format!("Counter: {}", counter.0)
                         })
