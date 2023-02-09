@@ -3,6 +3,7 @@ use std::{
     collections::VecDeque,
     marker::PhantomData,
     rc::{Rc, Weak},
+    sync::mpsc::{self, Receiver, Sender},
 };
 
 use crate::{
@@ -18,22 +19,23 @@ use crate::{
 pub struct App {
     pub(crate) resources: Resources,
     widget: BoxedWidget,
-    request_events: bool,
-    event_queue: Vec<Event>,
+    event_chan: Receiver<Event>,
+    event_sender: Sender<Event>,
 }
 
 impl App {
     pub fn new<W: Widget + 'static>(
         widget: impl FnOnce(WidgetContext<'_>) -> Rc<RefCell<W>>,
     ) -> Self {
+        let (sender, receiver) = mpsc::channel::<Event>();
         Self {
             resources: Resources::new(),
             widget: widget(WidgetContext {
                 parent: Weak::<RefCell<W>>::new(),
                 phantom: PhantomData,
             }),
-            request_events: false,
-            event_queue: Vec::new(),
+            event_chan: receiver,
+            event_sender: sender,
         }
     }
 
@@ -54,47 +56,43 @@ impl App {
     }
 
     pub fn queue_events(&mut self, events: impl EventBatch) {
-        self.event_queue.extend(events.into_iter());
-        self.request_events = true;
+        for event in events.into_iter() {
+            self.event_sender.send(event).unwrap();
+        }
     }
 
     pub fn handle(&mut self) {
-        while self.request_events {
-            self.request_events = false;
-            while let Some(mut event) = self.event_queue.pop() {
-                if let EventKind::Root = &event.kind {
-                    event.kind = EventKind::FallingFrom(self.widget.clone())
+        while let Some(mut event) = self.event_chan.try_recv().ok() {
+            if let EventKind::Root = &event.kind {
+                event.kind = EventKind::FallingFrom(self.widget.clone())
+            }
+            let mut deque = VecDeque::new();
+            let mut called_systems = Vec::new();
+            match &event.kind {
+                EventKind::FallingFrom(w) | EventKind::BubbleIn(w) => deque.push_back(w.clone()),
+                _ => panic!("Unexpanded EventKind"),
+            }
+            while let Some(widget) = deque.pop_front() {
+                let mut systems = widget.borrow_mut().fetch_events(event.message.type_id());
+                for sys in &mut systems {
+                    sys.borrow_mut().initialize();
+                    sys.borrow_mut().run(SystemContext {
+                        app: self,
+                        event: Some(event.clone()),
+                        widget: &widget,
+                    });
+                    called_systems.push(sys.to_owned());
                 }
-                let mut deque = VecDeque::new();
-                let mut called_systems = Vec::new();
                 match &event.kind {
-                    EventKind::FallingFrom(w) | EventKind::BubbleIn(w) => {
-                        deque.push_back(w.clone())
+                    EventKind::FallingFrom(_) => {
+                        deque.extend(widget.borrow_mut().children_mut().iter())
                     }
+                    EventKind::BubbleIn(_) => {}
                     _ => panic!("Unexpanded EventKind"),
                 }
-                while let Some(widget) = deque.pop_front() {
-                    let mut systems = widget.borrow_mut().fetch_events(event.message.type_id());
-                    for sys in &mut systems {
-                        sys.borrow_mut().initialize();
-                        sys.borrow_mut().run(SystemContext {
-                            app: self,
-                            event: Some(event.clone()),
-                            widget: &widget,
-                        });
-                        called_systems.push(sys.to_owned());
-                    }
-                    match &event.kind {
-                        EventKind::FallingFrom(_) => {
-                            deque.extend(widget.borrow_mut().children_mut().iter())
-                        }
-                        EventKind::BubbleIn(_) => {}
-                        _ => panic!("Unexpanded EventKind"),
-                    }
-                }
-                for sys in called_systems {
-                    sys.borrow_mut().apply(self);
-                }
+            }
+            for sys in called_systems {
+                sys.borrow_mut().apply(self);
             }
         }
     }
