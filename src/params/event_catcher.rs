@@ -1,4 +1,4 @@
-use std::{marker::PhantomData, ops::Deref};
+use std::marker::PhantomData;
 
 use crate::{
     access::Access,
@@ -8,10 +8,29 @@ use crate::{
     system_param::SystemParam,
 };
 
-// TODO: add try() and catch() methods for this. catch will block from going further in other widgets
 pub struct EventCatcher<E: EventMessage> {
     data: Event,
     phantom: PhantomData<E>,
+}
+
+impl<E: EventMessage + Clone + 'static> EventCatcher<E> {
+    pub fn get(&self) -> &E {
+        self.data
+            .message
+            .as_any()
+            .downcast_ref()
+            .expect("Expected other type of EventMessage than given!")
+    }
+
+    // TODO: catch function which should also cancel running the event further
+    pub fn catch(&self) -> E {
+        self.data
+            .message
+            .as_any()
+            .downcast_ref::<E>()
+            .expect("Expected other type of EventMessage than given!")
+            .clone()
+    }
 }
 
 impl<E: EventMessage + 'static> SystemParam for EventCatcher<E> {
@@ -30,16 +49,4 @@ impl<E: EventMessage + 'static> SystemParam for EventCatcher<E> {
     }
 
     fn apply<'a>(_state: Self::State, _app: &'a mut App) {}
-}
-
-impl<E: EventMessage> Deref for EventCatcher<E> {
-    type Target = E;
-
-    fn deref(&self) -> &Self::Target {
-        self.data
-            .message
-            .as_any()
-            .downcast_ref()
-            .expect("Expected other type of EventMessage than given!")
-    }
 }

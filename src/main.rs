@@ -43,11 +43,19 @@ fn main() {
     app.handle();
     app.queue_events(Event::new(PointerClick(Point(1, 2)), EventKind::Root));
     app.handle();
+    app.queue_events(Event::new(PointerClick(Point(3, 2)), EventKind::Root));
+    app.handle();
 }
 
 fn pointer_click(event: EventCatcher<PointerClick>, mut on_click: EventThrower<OnClick>) {
-    println!("pointer clicked at: {:?}", event.0);
-    on_click += (OnClick(event.0.clone()), EventKind::Bubble);
+    match event.get().0 {
+        Point(1, 2) => {
+            let event = event.catch();
+            println!("pointer clicked at: {:?}", event.0);
+            on_click += (OnClick(event.0.clone()), EventKind::Bubble);
+        }
+        _ => {}
+    }
 }
 
 fn increment_counter(mut counter: ResMut<Counter>) {
