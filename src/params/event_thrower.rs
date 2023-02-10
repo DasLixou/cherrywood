@@ -6,6 +6,7 @@ use crate::{
     event::{Event, EventKind, EventMessage},
     system_context::SystemContext,
     system_param::SystemParam,
+    system_result::SystemResult,
     widget::BoxedWidget,
 };
 
@@ -34,6 +35,8 @@ impl<'w, E: EventMessage + 'static> SystemParam for EventThrower<'w, E> {
             widget: context.widget,
         }
     }
+
+    fn result(&mut self, _result: &mut SystemResult) {}
 
     fn apply<'a>(state: Self::State, app: &'a mut App) {
         app.queue_events(state);

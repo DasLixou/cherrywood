@@ -3,6 +3,7 @@ use crate::app::App;
 use crate::system::SystemParamFunction;
 use crate::system_context::SystemContext;
 use crate::system_param::SystemParam;
+use crate::system_result::SystemResult;
 
 impl SystemParam for () {
     type State = ();
@@ -16,6 +17,8 @@ impl SystemParam for () {
     ) -> Self::Param<'c> {
         ()
     }
+
+    fn result(&mut self, _result: &mut SystemResult) {}
 
     fn apply<'a>(_state: Self::State, _app: &'a mut App) {}
 }
@@ -57,6 +60,12 @@ macro_rules! impl_system_param_fn {
                         &mut *((&mut *context) as *mut SystemContext)
                     })
                 ),*,)
+            }
+
+            fn result(&mut self, result: &mut SystemResult) {
+                $(
+                    self.$index.result(result);
+                )*
             }
 
             fn apply<'a>(state: Self::State, app: &'a mut App) {

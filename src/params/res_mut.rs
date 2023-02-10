@@ -2,7 +2,7 @@ use std::ops::{Deref, DerefMut};
 
 use crate::{
     access::Access, app::App, resource::Resource, system_context::SystemContext,
-    system_param::SystemParam,
+    system_param::SystemParam, system_result::SystemResult,
 };
 
 pub struct ResMut<'r, R: Resource> {
@@ -28,6 +28,8 @@ impl<'r, R: Resource + 'static> SystemParam for ResMut<'r, R> {
             )),
         }
     }
+
+    fn result(&mut self, _result: &mut SystemResult) {}
 
     fn apply<'a>(_state: Self::State, _app: &'a mut App) {}
 }
