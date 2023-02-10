@@ -36,7 +36,7 @@ impl<'w, E: EventMessage + 'static> SystemParam for EventThrower<'w, E> {
         }
     }
 
-    fn result(&mut self, _result: &mut SystemResult) {}
+    fn result(_state: &mut Self::State, _result: &mut SystemResult) {}
 
     fn apply<'a>(state: Self::State, app: &'a mut App) {
         app.queue_events(state);

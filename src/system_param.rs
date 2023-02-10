@@ -11,7 +11,7 @@ pub trait SystemParam: Sized {
         context: &'c mut SystemContext<'_>,
     ) -> Self::Param<'c>;
 
-    fn result(&mut self, result: &mut SystemResult);
+    fn result(state: &mut Self::State, result: &mut SystemResult);
 
     fn apply<'a>(state: Self::State, app: &'a mut App);
 }

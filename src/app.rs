@@ -72,16 +72,19 @@ impl App {
                 EventKind::FallingFrom(w) | EventKind::BubbleIn(w) => deque.push_back(w.clone()),
                 _ => panic!("Unexpanded EventKind"),
             }
-            while let Some(widget) = deque.pop_front() {
+            'events: while let Some(widget) = deque.pop_front() {
                 let mut systems = widget.borrow_mut().fetch_events(event.message.type_id());
                 for sys in &mut systems {
                     sys.borrow_mut().initialize();
-                    sys.borrow_mut().run(SystemContext {
+                    let (result, _) = sys.borrow_mut().run(SystemContext {
                         app: self,
                         event: event.clone(),
                         widget: &widget,
                     });
                     called_systems.push(sys.to_owned());
+                    if result.event_catched {
+                        break 'events;
+                    }
                 }
                 match &event.kind {
                     EventKind::FallingFrom(_) => {

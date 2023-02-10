@@ -29,7 +29,7 @@ impl<'r, R: Resource + 'static> SystemParam for ResMut<'r, R> {
         }
     }
 
-    fn result(&mut self, _result: &mut SystemResult) {}
+    fn result(_state: &mut Self::State, _result: &mut SystemResult) {}
 
     fn apply<'a>(_state: Self::State, _app: &'a mut App) {}
 }

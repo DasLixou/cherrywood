@@ -47,7 +47,7 @@ fn main() {
     app.handle();
 }
 
-fn pointer_click(event: EventCatcher<PointerClick>, mut on_click: EventThrower<OnClick>) {
+fn pointer_click(mut event: EventCatcher<PointerClick>, mut on_click: EventThrower<OnClick>) {
     match event.get().0 {
         Point(0..=2, 0..=5) => {
             let event = event.catch();

@@ -18,7 +18,7 @@ impl SystemParam for () {
         ()
     }
 
-    fn result(&mut self, _result: &mut SystemResult) {}
+    fn result(_state: &mut Self::State, _result: &mut SystemResult) {}
 
     fn apply<'a>(_state: Self::State, _app: &'a mut App) {}
 }
@@ -33,9 +33,9 @@ where
     {
     }
 
-    fn run<'c>(&mut self, _state: &mut (), _context: SystemContext<'c>) -> () {
+    fn run<'c>(&mut self, _state: &mut (), _context: SystemContext<'c>) -> (SystemResult, ()) {
         self();
-        ()
+        (SystemResult::NEW, ())
     }
 
     fn apply<'a>(&mut self, _state: <() as SystemParam>::State, _app: &'a mut App) {}
@@ -62,9 +62,9 @@ macro_rules! impl_system_param_fn {
                 ),*,)
             }
 
-            fn result(&mut self, result: &mut SystemResult) {
+            fn result(state: &mut Self::State, result: &mut SystemResult) {
                 $(
-                    self.$index.result(result);
+                    <$generic as SystemParam>::result(&mut state.$index, result);
                 )*
             }
 
@@ -86,11 +86,16 @@ macro_rules! impl_system_param_fn {
                 <($($generic),*,) as SystemParam>::initialize(access)
             }
 
-            fn run<'c>(&mut self, mut state: &mut <($($generic),*,) as SystemParam>::State, mut context: SystemContext<'c>) -> Out {
-                let params = <($($generic),*,) as SystemParam>::get_param(&mut state, &mut context);
-                self($(
-                    params.$index
-                ),*)
+            fn run<'c>(&mut self, mut state: &mut <($($generic),*,) as SystemParam>::State, mut context: SystemContext<'c>) -> (SystemResult, Out) {
+                let out = {
+                    let params = <($($generic),*,) as SystemParam>::get_param(&mut state, &mut context);
+                    self($(
+                        params.$index
+                    ),*)
+                };
+                let mut result = SystemResult::NEW;
+                <($($generic),*,) as SystemParam>::result(&mut state, &mut result);
+                (result, out)
             }
 
             fn apply<'a>(&mut self, state: <($($generic),*,) as SystemParam>::State, app: &'a mut App) {

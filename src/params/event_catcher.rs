@@ -9,16 +9,15 @@ use crate::{
     system_result::SystemResult,
 };
 
-pub struct EventCatcher<E: EventMessage> {
-    data: Option<Event>,
+pub struct EventCatcher<'s, E: EventMessage> {
+    data: Event,
+    catched: &'s mut bool,
     phantom: PhantomData<E>,
 }
 
-impl<E: EventMessage + Clone + 'static> EventCatcher<E> {
+impl<E: EventMessage + Clone + 'static> EventCatcher<'_, E> {
     pub fn get(&self) -> &E {
         self.data
-            .as_ref()
-            .expect("Event was already catched")
             .message
             .as_any()
             .downcast_ref()
@@ -26,10 +25,9 @@ impl<E: EventMessage + Clone + 'static> EventCatcher<E> {
     }
 
     // TODO: catch function which should also cancel running the event further
-    pub fn catch(&self) -> E {
+    pub fn catch(&mut self) -> E {
+        *self.catched = true;
         self.data
-            .as_ref()
-            .expect("Event was already catched")
             .message
             .as_any()
             .downcast_ref::<E>()
@@ -38,23 +36,28 @@ impl<E: EventMessage + Clone + 'static> EventCatcher<E> {
     }
 }
 
-impl<E: EventMessage + 'static> SystemParam for EventCatcher<E> {
-    type State = ();
-    type Param<'c> = EventCatcher<E>;
+impl<E: EventMessage + 'static> SystemParam for EventCatcher<'_, E> {
+    type State = bool;
+    type Param<'c> = EventCatcher<'c, E>;
 
     fn initialize(_access: &mut Access) -> Self::State {
         //access.with_read::<R>(); // TODO: access with multiple types
+        false
     }
 
-    fn get_param<'c>(_state: &mut Self::State, context: &mut SystemContext<'c>) -> Self::Param<'c> {
+    fn get_param<'c>(
+        state: &'c mut Self::State,
+        context: &'c mut SystemContext<'_>,
+    ) -> Self::Param<'c> {
         EventCatcher {
-            data: Some(context.event.clone()),
+            data: context.event.clone(),
+            catched: state,
             phantom: PhantomData,
         }
     }
 
-    fn result(&mut self, result: &mut SystemResult) {
-        if self.data.is_none() {
+    fn result(state: &mut Self::State, result: &mut SystemResult) {
+        if *state {
             result.event_catched = true;
         }
     }

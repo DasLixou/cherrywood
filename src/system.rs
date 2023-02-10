@@ -1,6 +1,9 @@
 use std::{cell::RefCell, rc::Rc};
 
-use crate::{access::Access, app::App, system_context::SystemContext, system_param::SystemParam};
+use crate::{
+    access::Access, app::App, system_context::SystemContext, system_param::SystemParam,
+    system_result::SystemResult,
+};
 
 pub trait IntoDescribedSystem<Out, Params> {
     type System: DescribedSystem<Out> + 'static;
@@ -11,7 +14,7 @@ pub trait IntoDescribedSystem<Out, Params> {
 pub trait DescribedSystem<Out> {
     fn initialize(&mut self);
 
-    fn run<'c>(&mut self, context: SystemContext<'c>) -> Out;
+    fn run<'c>(&mut self, context: SystemContext<'c>) -> (SystemResult, Out);
 
     fn apply<'a>(&mut self, app: &'a mut App);
 }
@@ -48,7 +51,7 @@ where
         self.state = Some(F::initialize(&mut self.access));
     }
 
-    fn run<'c>(&mut self, context: SystemContext<'c>) -> Out {
+    fn run<'c>(&mut self, context: SystemContext<'c>) -> (SystemResult, Out) {
         SystemParamFunction::run(
             &mut self.system,
             self.state
@@ -72,7 +75,11 @@ pub(crate) trait SystemParamFunction<Out, Params: SystemParam>: 'static {
     where
         Self: Sized;
 
-    fn run<'c>(&mut self, state: &mut Params::State, context: SystemContext<'c>) -> Out;
+    fn run<'c>(
+        &mut self,
+        state: &mut Params::State,
+        context: SystemContext<'c>,
+    ) -> (SystemResult, Out);
 
     fn apply<'a>(&mut self, state: Params::State, app: &'a mut App);
 }
