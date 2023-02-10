@@ -9,9 +9,9 @@ pub struct ResMut<'r, R: Resource> {
     data: &'r mut R,
 }
 
-impl<'r, R: Resource + 'static> SystemParam for ResMut<'r, R> {
+impl<R: Resource + 'static> SystemParam for ResMut<'_, R> {
     type State = ();
-    type Param<'c> = ResMut<'c, R>;
+    type Param<'s> = ResMut<'s, R>;
 
     fn initialize(access: &mut Access) -> Self::State {
         access.with_write::<R>();
@@ -34,7 +34,7 @@ impl<'r, R: Resource + 'static> SystemParam for ResMut<'r, R> {
     fn apply<'a>(_state: Self::State, _app: &'a mut App) {}
 }
 
-impl<'r, R: Resource> Deref for ResMut<'r, R> {
+impl<R: Resource> Deref for ResMut<'_, R> {
     type Target = R;
 
     fn deref(&self) -> &Self::Target {
@@ -42,7 +42,7 @@ impl<'r, R: Resource> Deref for ResMut<'r, R> {
     }
 }
 
-impl<'r, R: Resource> DerefMut for ResMut<'r, R> {
+impl<R: Resource> DerefMut for ResMut<'_, R> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         self.data
     }

@@ -10,24 +10,25 @@ use crate::{
 };
 
 pub struct EventCatcher<'s, E: EventMessage> {
-    data: Event,
-    catched: &'s mut bool,
+    state: &'s mut Option<Event>,
     phantom: PhantomData<E>,
 }
 
 impl<E: EventMessage + Clone + 'static> EventCatcher<'_, E> {
     pub fn get(&self) -> &E {
-        self.data
+        self.state
+            .as_ref()
+            .expect("Event was already catched")
             .message
             .as_any()
             .downcast_ref()
             .expect("Expected other type of EventMessage than given!")
     }
 
-    // TODO: catch function which should also cancel running the event further
     pub fn catch(&mut self) -> E {
-        *self.catched = true;
-        self.data
+        self.state
+            .take()
+            .expect("Event was already catched")
             .message
             .as_any()
             .downcast_ref::<E>()
@@ -37,27 +38,27 @@ impl<E: EventMessage + Clone + 'static> EventCatcher<'_, E> {
 }
 
 impl<E: EventMessage + 'static> SystemParam for EventCatcher<'_, E> {
-    type State = bool;
-    type Param<'c> = EventCatcher<'c, E>;
+    type State = Option<Event>;
+    type Param<'s> = EventCatcher<'s, E>;
 
     fn initialize(_access: &mut Access) -> Self::State {
         //access.with_read::<R>(); // TODO: access with multiple types
-        false
+        None
     }
 
     fn get_param<'c>(
         state: &'c mut Self::State,
         context: &'c mut SystemContext<'_>,
     ) -> Self::Param<'c> {
+        *state = Some(context.event.clone());
         EventCatcher {
-            data: context.event.clone(),
-            catched: state,
+            state,
             phantom: PhantomData,
         }
     }
 
     fn result(state: &mut Self::State, result: &mut SystemResult) {
-        if *state {
+        if state.is_none() {
             result.event_catched = true;
         }
     }

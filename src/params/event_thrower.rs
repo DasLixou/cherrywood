@@ -16,9 +16,9 @@ pub struct EventThrower<'w, E: EventMessage> {
     widget: &'w BoxedWidget,
 }
 
-impl<'w, E: EventMessage + 'static> SystemParam for EventThrower<'w, E> {
+impl<E: EventMessage + 'static> SystemParam for EventThrower<'_, E> {
     type State = Vec<Event>;
-    type Param<'c> = EventThrower<'c, E>;
+    type Param<'s> = EventThrower<'s, E>;
 
     fn initialize(_access: &mut Access) -> Self::State {
         //access.with_read::<R>(); // TODO: access with multiple types

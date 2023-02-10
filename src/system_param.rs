@@ -2,7 +2,7 @@ use crate::{access::Access, app::App, system_context::SystemContext, system_resu
 
 pub trait SystemParam: Sized {
     type State;
-    type Param<'c>: SystemParam;
+    type Param<'s>: SystemParam;
 
     fn initialize(access: &mut Access) -> Self::State;
 

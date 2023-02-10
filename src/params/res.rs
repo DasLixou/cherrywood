@@ -9,9 +9,9 @@ pub struct Res<'r, R: Resource> {
     data: &'r R,
 }
 
-impl<'r, R: Resource + 'static> SystemParam for Res<'r, R> {
+impl<R: Resource + 'static> SystemParam for Res<'_, R> {
     type State = ();
-    type Param<'c> = Res<'c, R>;
+    type Param<'s> = Res<'s, R>;
 
     fn initialize(access: &mut Access) -> Self::State {
         access.with_read::<R>();
@@ -34,7 +34,7 @@ impl<'r, R: Resource + 'static> SystemParam for Res<'r, R> {
     fn apply<'a>(_state: Self::State, _app: &'a mut App) {}
 }
 
-impl<'r, R: Resource> Deref for Res<'r, R> {
+impl<R: Resource> Deref for Res<'_, R> {
     type Target = R;
 
     fn deref(&self) -> &Self::Target {
