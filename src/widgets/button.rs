@@ -16,11 +16,11 @@ pub struct Button {
 }
 
 impl Button {
-    pub fn new<'c>(cx: WidgetContext<'c>) -> Rc<RefCell<Self>> {
+    pub fn new<'c>(cx: &mut WidgetContext<'c>) -> Rc<RefCell<Self>> {
         Rc::new_cyclic(|me| {
             let widget = Self {
                 event_rack: EventRack::new(),
-                parent: cx.parent,
+                parent: cx.parent.clone(),
                 me: me.clone(),
             };
             RefCell::new(widget)

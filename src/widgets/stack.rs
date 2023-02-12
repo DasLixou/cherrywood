@@ -17,11 +17,11 @@ pub struct Stack {
 }
 
 impl Stack {
-    pub fn new(cx: WidgetContext<'_>) -> Rc<RefCell<Self>> {
+    pub fn new(cx: &mut WidgetContext<'_>) -> Rc<RefCell<Self>> {
         Rc::new_cyclic(|me| {
             let widget = Self {
                 children: Children::new(),
-                parent: cx.parent,
+                parent: cx.parent.clone(),
                 me: me.clone(),
             };
             RefCell::new(widget)
@@ -30,9 +30,9 @@ impl Stack {
 
     pub fn with_children<B: WidgetBatch>(
         &mut self,
-        children: impl FnOnce(WidgetContext<'_>) -> B,
+        children: impl FnOnce(&mut WidgetContext<'_>) -> B,
     ) -> &mut Self {
-        let batch = children(WidgetContext {
+        let batch = children(&mut WidgetContext {
             parent: self.parent.clone(),
             phantom: PhantomData,
         });

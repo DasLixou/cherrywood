@@ -25,12 +25,12 @@ pub struct App {
 
 impl App {
     pub fn new<W: Widget + 'static>(
-        widget: impl FnOnce(WidgetContext<'_>) -> Rc<RefCell<W>>,
+        widget: impl FnOnce(&mut WidgetContext<'_>) -> Rc<RefCell<W>>,
     ) -> Self {
         let (sender, receiver) = mpsc::channel::<Event>();
         Self {
             resources: Resources::new(),
-            widget: widget(WidgetContext {
+            widget: widget(&mut WidgetContext {
                 parent: Weak::<RefCell<W>>::new(),
                 phantom: PhantomData,
             }),

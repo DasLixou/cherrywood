@@ -18,7 +18,7 @@ fn main() {
             .borrow_mut()
             .with_children(|cx| {
                 (
-                    Button::new(cx.clone())
+                    Button::new(cx)
                         .borrow_mut()
                         .subscribe_event::<PointerClick, _>(pointer_click.into_described())
                         .subscribe_event::<OnClick, _>((
