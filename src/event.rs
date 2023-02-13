@@ -1,6 +1,6 @@
 use dyn_clone::DynClone;
 
-use crate::{as_any::AsAny, math::point::Point, widget::BoxedWidget};
+use crate::{as_any::AsAny, math::point::Point, widgets::WidgetId};
 
 #[derive(Clone)]
 pub struct Event {
@@ -33,9 +33,9 @@ pub enum EventKind {
     /// Gets converted into [`EventKind::BubbleIn`] with the current widget.
     Bubble,
     /// **The event will appear in the given widget and then pass trough it's children.**
-    FallingFrom(BoxedWidget),
+    FallingFrom(WidgetId),
     /// **The event will only appear in the given widget.**
-    BubbleIn(BoxedWidget),
+    BubbleIn(WidgetId),
 }
 
 pub trait EventMessage: DynClone + AsAny {}

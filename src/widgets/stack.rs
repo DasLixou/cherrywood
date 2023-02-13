@@ -1,64 +1,49 @@
-use std::{
-    any::TypeId,
-    cell::RefCell,
-    marker::PhantomData,
-    rc::{Rc, Weak},
-};
+use std::any::TypeId;
 
 use crate::{
-    batch::widget::WidgetBatch, children::Children, system::BoxedDescribedSystem, widget::Widget,
+    app::App, batch::widget::WidgetBatch, system::BoxedDescribedSystem, widget::Widget,
     widget_context::WidgetContext,
 };
 
+use super::WidgetId;
+
 pub struct Stack {
-    children: Children,
-    parent: Weak<RefCell<dyn Widget>>,
-    me: Weak<RefCell<Self>>,
+    id: WidgetId,
+    app: *mut App,
 }
 
 impl Stack {
-    pub fn new(cx: &mut WidgetContext<'_>) -> Rc<RefCell<Self>> {
-        Rc::new_cyclic(|me| {
-            let widget = Self {
-                children: Children::new(),
-                parent: cx.parent.clone(),
-                me: me.clone(),
-            };
-            RefCell::new(widget)
-        })
+    pub fn new<'c>(cx: WidgetContext) -> &'c mut Self {
+        unsafe {
+            cx.app
+                .as_mut()
+                .unwrap()
+                .create_widget(|id| Self { app: cx.app, id })
+        }
     }
 
-    pub fn with_children<B: WidgetBatch>(
+    pub fn extend_children<B: WidgetBatch>(
         &mut self,
-        children: impl FnOnce(&mut WidgetContext<'_>) -> B,
+        children: impl FnOnce(WidgetContext) -> B,
     ) -> &mut Self {
-        let batch = children(&mut WidgetContext {
-            parent: self.parent.clone(),
-            phantom: PhantomData,
-        });
-        self.children.extend_batch(batch);
+        let batch = children(WidgetContext { app: self.app });
+        unsafe {
+            self.app
+                .as_mut()
+                .unwrap()
+                .extend_children(self.id, B::CAPACITY, batch.into_iter());
+        }
         self
     }
 }
 
 impl Widget for Stack {
-    fn fetch_events(&mut self, _event_type: TypeId) -> Vec<BoxedDescribedSystem> {
+    fn fetch_events(&self, _event_type: TypeId) -> Vec<BoxedDescribedSystem> {
         vec![]
     }
 
-    fn finish(&self) -> Rc<RefCell<Self>>
-    where
-        Self: Sized,
-    {
-        self.me.upgrade().unwrap()
-    }
-
-    fn parent(&mut self) -> Weak<RefCell<dyn Widget>> {
-        self.parent.clone()
-    }
-
-    fn children_mut(&mut self) -> Children {
-        self.children.clone()
+    fn id(&self) -> WidgetId {
+        self.id
     }
 
     fn as_any(&self) -> &dyn std::any::Any {

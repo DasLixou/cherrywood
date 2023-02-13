@@ -11,3 +11,4 @@ edition = "2021"
 [dependencies]
 dyn-clone = "1.0.10"
 hashbrown = "0.13.2"
+slotmap = "1.0.6"

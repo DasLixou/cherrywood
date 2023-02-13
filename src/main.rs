@@ -5,7 +5,6 @@ use cherrywood::{
     params::{event_catcher::EventCatcher, event_thrower::EventThrower, res::Res, res_mut::ResMut},
     resource::Resource,
     system::IntoDescribedSystem,
-    widget::Widget,
     widgets::{button::Button, label::Label, stack::Stack},
 };
 
@@ -13,30 +12,23 @@ struct Counter(i32);
 impl Resource for Counter {}
 
 fn main() {
-    let mut app = App::new(|cx| {
-        Stack::new(cx)
-            .borrow_mut()
-            .with_children(|cx| {
-                (
-                    Button::new(cx)
-                        .borrow_mut()
-                        .subscribe_event::<PointerClick, _>(pointer_click.into_described())
-                        .subscribe_event::<OnClick, _>((
-                            increment_counter.into_described(),
-                            send_request.into_described(),
-                        ))
-                        .finish(),
-                    Label::new(cx)
-                        .borrow_mut()
-                        .with_content(|counter: Res<Counter>| {
-                            // TODO: we could notify about change via events
-                            println!("Counter changed.");
-                            format!("Counter: {}", counter.0)
-                        })
-                        .finish(),
-                )
-            })
-            .finish()
+    let mut app = App::new();
+    app.with_content(|cx| {
+        Stack::new(cx).extend_children(|cx| {
+            (
+                Button::new(cx)
+                    .subscribe_event::<PointerClick, _>(pointer_click.into_described())
+                    .subscribe_event::<OnClick, _>((
+                        increment_counter.into_described(),
+                        send_request.into_described(),
+                    )),
+                Label::new(cx).with_content(|counter: Res<Counter>| {
+                    // TODO: we could notify about change via events
+                    println!("Counter changed.");
+                    format!("Counter: {}", counter.0)
+                }),
+            )
+        })
     });
     app.insert_resource(Counter(0));
     app.queue_events(Event::new(PointerClick(Point(1, 2)), EventKind::Root));

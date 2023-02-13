@@ -1,10 +1,9 @@
 use std::{
-    cell::RefCell,
     collections::VecDeque,
-    marker::PhantomData,
-    rc::{Rc, Weak},
     sync::mpsc::{self, Receiver, Sender},
 };
+
+use slotmap::{HopSlotMap, Key, SecondaryMap};
 
 use crate::{
     batch::event::EventBatch,
@@ -12,31 +11,42 @@ use crate::{
     resource::Resource,
     resources::Resources,
     system_context::SystemContext,
+    utils::iter_choice::IterChoice,
     widget::{BoxedWidget, Widget},
     widget_context::WidgetContext,
+    widgets::WidgetId,
 };
 
 pub struct App {
     resources: Resources,
-    widget: BoxedWidget,
     event_chan: Receiver<Event>,
     event_sender: Sender<Event>,
+    main: WidgetId,
+    widgets: HopSlotMap<WidgetId, BoxedWidget>,
+    children: SecondaryMap<WidgetId, Vec<WidgetId>>,
+    parents: SecondaryMap<WidgetId, WidgetId>,
 }
 
 impl App {
-    pub fn new<W: Widget + 'static>(
-        widget: impl FnOnce(&mut WidgetContext<'_>) -> Rc<RefCell<W>>,
-    ) -> Self {
+    pub fn new() -> Self {
         let (sender, receiver) = mpsc::channel::<Event>();
         Self {
             resources: Resources::new(),
-            widget: widget(&mut WidgetContext {
-                parent: Weak::<RefCell<W>>::new(),
-                phantom: PhantomData,
-            }),
             event_chan: receiver,
             event_sender: sender,
+            main: WidgetId::null(),
+            widgets: HopSlotMap::with_key(),
+            children: SecondaryMap::new(),
+            parents: SecondaryMap::new(),
         }
+    }
+
+    pub fn with_content<'w, W: Widget + 'static>(
+        &mut self,
+        widget: impl FnOnce(WidgetContext) -> &'w mut W,
+    ) -> &mut Self {
+        self.main = widget(WidgetContext { app: self }).id();
+        self
     }
 
     pub fn insert_resource<R: Resource + 'static>(&mut self, value: R) {
@@ -64,7 +74,7 @@ impl App {
     pub fn handle(&mut self) {
         while let Some(mut event) = self.event_chan.try_recv().ok() {
             if let EventKind::Root = &event.kind {
-                event.kind = EventKind::FallingFrom(self.widget.clone())
+                event.kind = EventKind::FallingFrom(self.main)
             }
             let mut deque = VecDeque::new();
             let mut called_systems = Vec::new();
@@ -73,13 +83,16 @@ impl App {
                 _ => panic!("Unexpanded EventKind"),
             }
             'events: while let Some(widget) = deque.pop_front() {
-                let mut systems = widget.borrow_mut().fetch_events(event.message.type_id());
+                let mut systems = self
+                    .get_widget(widget)
+                    .unwrap()
+                    .fetch_events(event.message.type_id());
                 for sys in &mut systems {
                     sys.borrow_mut().initialize();
                     let (result, _) = sys.borrow_mut().run(SystemContext {
                         app: self,
                         event: event.clone(),
-                        widget: &widget,
+                        widget,
                     });
                     called_systems.push(sys.to_owned());
                     if result.event_catched {
@@ -87,9 +100,7 @@ impl App {
                     }
                 }
                 match &event.kind {
-                    EventKind::FallingFrom(_) => {
-                        deque.extend(widget.borrow_mut().children_mut().iter())
-                    }
+                    EventKind::FallingFrom(_) => deque.extend(self.children_of(widget)),
                     EventKind::BubbleIn(_) => {}
                     _ => panic!("Unexpanded EventKind"),
                 }
@@ -98,5 +109,47 @@ impl App {
                 sys.borrow_mut().apply(self);
             }
         }
+    }
+
+    pub fn create_widget<W: Widget + 'static>(&mut self, f: impl FnOnce(WidgetId) -> W) -> &mut W {
+        let id = self.widgets.insert_with_key(|k| Box::new(f(k)));
+        unsafe {
+            self.widgets
+                .get_unchecked_mut(id)
+                .as_any_mut()
+                .downcast_mut()
+                .unwrap_unchecked()
+        }
+    }
+
+    pub fn get_widget(&self, widget: WidgetId) -> Option<&BoxedWidget> {
+        self.widgets.get(widget)
+    }
+
+    pub fn get_widget_mut(&mut self, widget: WidgetId) -> Option<&mut BoxedWidget> {
+        self.widgets.get_mut(widget)
+    }
+
+    pub fn children_of(&self, widget: WidgetId) -> impl Iterator<Item = WidgetId> + '_ {
+        if let Some(children) = self.children.get(widget) {
+            IterChoice::First(children.iter().cloned())
+        } else {
+            IterChoice::Second(std::iter::empty::<WidgetId>())
+        }
+    }
+
+    pub fn extend_children(
+        &mut self,
+        widget: WidgetId,
+        capacity: usize,
+        children: impl Iterator<Item = WidgetId>,
+    ) {
+        let vec = self.children.entry(widget).unwrap().or_default();
+        vec.reserve(capacity);
+        vec.extend(children)
+    }
+
+    pub fn parent_of(&self, widget: WidgetId) -> Option<WidgetId> {
+        self.parents.get(widget).cloned()
     }
 }

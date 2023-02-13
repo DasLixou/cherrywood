@@ -1,11 +1,9 @@
-use std::{cell::RefCell, rc::Rc};
-
-use crate::widget::Widget;
+use crate::{widget::Widget, widgets::WidgetId};
 
 pub trait WidgetBatch {
     const CAPACITY: usize;
 
-    type IntoIter: Iterator<Item = Rc<RefCell<dyn Widget>>>;
+    type IntoIter: Iterator<Item = WidgetId>;
 
     fn into_iter(self) -> Self::IntoIter;
 }
@@ -13,20 +11,20 @@ pub trait WidgetBatch {
 impl WidgetBatch for () {
     const CAPACITY: usize = 0;
 
-    type IntoIter = std::iter::Empty<Rc<RefCell<dyn Widget>>>;
+    type IntoIter = std::iter::Empty<WidgetId>;
 
     fn into_iter(self) -> Self::IntoIter {
         std::iter::empty()
     }
 }
 
-impl<W: Widget + 'static> WidgetBatch for Rc<RefCell<W>> {
+impl<W: Widget + 'static> WidgetBatch for &mut W {
     const CAPACITY: usize = 1;
 
-    type IntoIter = std::iter::Once<Rc<RefCell<dyn Widget>>>;
+    type IntoIter = std::iter::Once<WidgetId>;
 
     fn into_iter(self) -> Self::IntoIter {
-        std::iter::once(self)
+        std::iter::once(self.id())
     }
 }
 
@@ -44,15 +42,15 @@ macro_rules! replace_expr {
 
 macro_rules! impl_widget_batch_tuple {
     ($(($generic:ident, $index:tt))+) => {
-        impl<$($generic: Widget + 'static),*> WidgetBatch for ($(Rc<RefCell<$generic>>,)+) { // TODO: this won't work because of `&mut` and &mut will cause a drop of temp value
+        impl<$($generic: Widget + 'static),*> WidgetBatch for ($(&mut $generic,)+) { // TODO: this won't work because of `&mut` and &mut will cause a drop of temp value
             const CAPACITY: usize = method_arity!($($generic)*);
 
-            type IntoIter = std::array::IntoIter<Rc<RefCell<dyn Widget>>, { method_arity!($($generic)*) }>;
+            type IntoIter = std::array::IntoIter<WidgetId, { method_arity!($($generic)*) }>;
 
             fn into_iter(self) -> Self::IntoIter {
                 ([$(
-                    self.$index
-                ),*] as [Rc<RefCell<dyn Widget>>; { method_arity!($($generic)*) }]).into_iter()
+                    self.$index.id()
+                ),*] as [WidgetId; { method_arity!($($generic)*) }]).into_iter()
             }
         }
     };

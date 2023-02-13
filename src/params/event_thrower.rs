@@ -7,13 +7,13 @@ use crate::{
     system_context::SystemContext,
     system_param::SystemParam,
     system_result::SystemResult,
-    widget::BoxedWidget,
+    widgets::WidgetId,
 };
 
 pub struct EventThrower<'w, E: EventMessage> {
     events: &'w mut Vec<Event>,
     phantom: PhantomData<E>,
-    widget: &'w BoxedWidget,
+    widget: WidgetId,
 }
 
 impl<E: EventMessage + 'static> SystemParam for EventThrower<'_, E> {

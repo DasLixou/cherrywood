@@ -1,33 +1,30 @@
-use std::{
-    any::TypeId,
-    cell::RefCell,
-    rc::{Rc, Weak},
-};
+use std::{any::TypeId, cell::RefCell, rc::Rc};
 
 use crate::{
-    children::Children,
+    app::App,
     system::{BoxedDescribedSystem, IntoDescribedSystem},
     system_param::SystemParam,
     widget::Widget,
     widget_context::WidgetContext,
 };
 
+use super::WidgetId;
+
 pub struct Label {
     content: Option<BoxedDescribedSystem<String>>,
-    parent: Weak<RefCell<dyn Widget>>,
-    me: Weak<RefCell<Self>>,
+    id: WidgetId,
+    app: *mut App,
 }
 
 impl Label {
-    pub fn new(cx: &mut WidgetContext<'_>) -> Rc<RefCell<Self>> {
-        Rc::new_cyclic(|me| {
-            let widget = Self {
+    pub fn new<'c>(cx: WidgetContext) -> &'c mut Self {
+        unsafe {
+            cx.app.as_mut().unwrap().create_widget(|id| Self {
                 content: None,
-                parent: cx.parent.clone(),
-                me: me.clone(),
-            };
-            RefCell::new(widget)
-        })
+                app: cx.app,
+                id,
+            })
+        }
     }
 
     pub fn with_content<F: IntoDescribedSystem<String, Params>, Params: SystemParam>(
@@ -41,23 +38,12 @@ impl Label {
 }
 
 impl Widget for Label {
-    fn fetch_events(&mut self, _event_type: TypeId) -> Vec<BoxedDescribedSystem> {
+    fn fetch_events(&self, _event_type: TypeId) -> Vec<BoxedDescribedSystem> {
         vec![]
     }
 
-    fn finish(&self) -> Rc<RefCell<Self>>
-    where
-        Self: Sized,
-    {
-        self.me.upgrade().unwrap()
-    }
-
-    fn parent(&mut self) -> Weak<RefCell<dyn Widget>> {
-        self.parent.clone()
-    }
-
-    fn children_mut(&mut self) -> Children {
-        Children::NONE
+    fn id(&self) -> WidgetId {
+        self.id
     }
 
     fn as_any(&self) -> &dyn std::any::Any {

@@ -1,30 +1,27 @@
-use std::{
-    any::TypeId,
-    cell::RefCell,
-    rc::{Rc, Weak},
-};
+use std::any::TypeId;
 
 use crate::{
-    batch::SystemBatch, children::Children, event::EventMessage, event_rack::EventRack,
+    app::App, batch::SystemBatch, event::EventMessage, event_rack::EventRack,
     system::BoxedDescribedSystem, widget::Widget, widget_context::WidgetContext,
 };
 
+use super::WidgetId;
+
 pub struct Button {
     event_rack: EventRack,
-    parent: Weak<RefCell<dyn Widget>>,
-    me: Weak<RefCell<Self>>,
+    id: WidgetId,
+    app: *mut App,
 }
 
 impl Button {
-    pub fn new<'c>(cx: &mut WidgetContext<'c>) -> Rc<RefCell<Self>> {
-        Rc::new_cyclic(|me| {
-            let widget = Self {
+    pub fn new<'c>(cx: WidgetContext) -> &'c mut Self {
+        unsafe {
+            cx.app.as_mut().unwrap().create_widget(|id| Self {
                 event_rack: EventRack::new(),
-                parent: cx.parent.clone(),
-                me: me.clone(),
-            };
-            RefCell::new(widget)
-        })
+                app: cx.app,
+                id,
+            })
+        }
     }
 
     pub fn subscribe_event<E: EventMessage + 'static, B: SystemBatch>(
@@ -37,23 +34,12 @@ impl Button {
 }
 
 impl Widget for Button {
-    fn fetch_events(&mut self, event_type: TypeId) -> Vec<BoxedDescribedSystem> {
+    fn fetch_events(&self, event_type: TypeId) -> Vec<BoxedDescribedSystem> {
         self.event_rack.fetch(event_type)
     }
 
-    fn finish(&self) -> Rc<RefCell<Self>>
-    where
-        Self: Sized,
-    {
-        self.me.upgrade().unwrap()
-    }
-
-    fn parent(&mut self) -> Weak<RefCell<dyn Widget>> {
-        self.parent.clone()
-    }
-
-    fn children_mut(&mut self) -> Children {
-        Children::NONE
+    fn id(&self) -> WidgetId {
+        self.id
     }
 
     fn as_any(&self) -> &dyn std::any::Any {
